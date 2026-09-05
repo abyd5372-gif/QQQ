@@ -150,8 +150,8 @@
         <i class="fa-solid fa-spinner fa-spin"></i>
     </div>
     
-    <!-- تم إضافة onerror للتعامل مع حظر محرر الأكواد -->
-    <img id="mushafImage" src="" class="mushaf-image" onload="document.getElementById('loader').style.display='none'" onerror="handleImageError()">
+    <!-- referrerpolicy="no-referrer" يمنع حظر الصور عند رفع الموقع على GitHub Pages -->
+    <img id="mushafImage" src="" class="mushaf-image" referrerpolicy="no-referrer">
     
     <div class="page-turn-btn btn-next" onclick="changePage(1)" title="الصفحة التالية"><i class="fa-solid fa-chevron-left"></i></div>
     <div class="page-turn-btn btn-prev" onclick="changePage(-1)" title="الصفحة السابقة"><i class="fa-solid fa-chevron-right"></i></div>
@@ -223,10 +223,6 @@
 
     window.onload = () => loadPage(currentPage);
 
-    function handleImageError() {
-        document.getElementById('loader').innerHTML = `<div style="font-size:1.1rem; color:#fff; background:#e74c3c; padding:15px; border-radius:10px; text-align:center; max-width:80%;">عذراً! محرر الأكواد الذي تستخدمه يمنع تحميل الصور لحماية سيرفراته.<br><br><b>الحل:</b> احفظ هذا الكود كملف بصيغة <b>.html</b> على كمبيوترك وافتحه بالمتصفح، وسيعمل فوراً.</div>`;
-    }
-
     function loadPage(pageNum) {
         document.getElementById('loader').style.display = 'flex';
         document.getElementById('loader').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
@@ -235,16 +231,37 @@
         closeMenu(); closeTafsir(); stopAudio();
 
         const paddedPage = String(pageNum).padStart(3, '0');
-        const originalUrl = `https://quran.ksu.edu.sa/ayat/safahat1/${paddedPage}.png`;
+        const img = document.getElementById('mushafImage');
         
-        // استخدام بروكسي لتخطي حظر محرر الأكواد (CORS Bypass)
-        document.getElementById('mushafImage').src = `https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`;
+        // سيرفرات متعددة عالية الاعتمادية بدون بروكسي
+        const sources = [
+            `https://quran.ksu.edu.sa/ayat/safahat1/${paddedPage}.png`,
+            `https://quran.ksu.edu.sa/ayat/safahat_v2/${paddedPage}.png`,
+            `https://cdn.jsdelivr.net/gh/The-Quran-Project/Quran-Images/images/${paddedPage}.png`
+        ];
+        
+        let sourceIndex = 0;
+
+        img.onload = () => {
+            document.getElementById('loader').style.display = 'none';
+        };
+
+        img.onerror = () => {
+            sourceIndex++;
+            if (sourceIndex < sources.length) {
+                img.src = sources[sourceIndex];
+            } else {
+                document.getElementById('loader').innerHTML = '<div style="color:red; font-size:1.1rem; font-weight:bold;">تعذر تحميل الصفحة، تحقق من الاتصال</div>';
+            }
+        };
+
+        img.src = sources[0];
 
         if (localDatabase[pageNum]) {
             drawCoordinates(localDatabase[pageNum]);
             showToast(`تم تحميل صفحة ${pageNum} (الإحداثيات مفعلة)`);
         } else {
-            showToast(`تم تحميل صفحة ${pageNum} (تفعيل التظليل يتطلب ربط قاعدة البيانات لاحقاً)`);
+            showToast(`تم تحميل صفحة ${pageNum}`);
         }
     }
 
