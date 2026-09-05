@@ -150,8 +150,7 @@
         <i class="fa-solid fa-spinner fa-spin"></i>
     </div>
     
-    <!-- referrerpolicy="no-referrer" يمنع حظر الصور عند رفع الموقع على GitHub Pages -->
-    <img id="mushafImage" src="" class="mushaf-image" referrerpolicy="no-referrer">
+    <img id="mushafImage" src="" class="mushaf-image" alt="صفحة المصحف">
     
     <div class="page-turn-btn btn-next" onclick="changePage(1)" title="الصفحة التالية"><i class="fa-solid fa-chevron-left"></i></div>
     <div class="page-turn-btn btn-prev" onclick="changePage(-1)" title="الصفحة السابقة"><i class="fa-solid fa-chevron-right"></i></div>
@@ -233,11 +232,11 @@
         const paddedPage = String(pageNum).padStart(3, '0');
         const img = document.getElementById('mushafImage');
         
-        // سيرفرات متعددة عالية الاعتمادية بدون بروكسي
+        // شبكات موثوقة عالمياً تعمل بتقنية HTTPS لنقل صور صفحة المصحف دون حظر Mixed Content
         const sources = [
-            `https://quran.ksu.edu.sa/ayat/safahat1/${paddedPage}.png`,
-            `https://quran.ksu.edu.sa/ayat/safahat_v2/${paddedPage}.png`,
-            `https://cdn.jsdelivr.net/gh/The-Quran-Project/Quran-Images/images/${paddedPage}.png`
+            `https://wsrv.nl/?url=quran.ksu.edu.sa/ayat/safahat1/${paddedPage}.png&output=png`,
+            `https://images.weserv.nl/?url=quran.ksu.edu.sa/ayat/safahat1/${paddedPage}.png&output=png`,
+            `https://corsproxy.io/?url=${encodeURIComponent('http://quran.ksu.edu.sa/ayat/safahat1/' + paddedPage + '.png')}`
         ];
         
         let sourceIndex = 0;
@@ -251,7 +250,7 @@
             if (sourceIndex < sources.length) {
                 img.src = sources[sourceIndex];
             } else {
-                document.getElementById('loader').innerHTML = '<div style="color:red; font-size:1.1rem; font-weight:bold;">تعذر تحميل الصفحة، تحقق من الاتصال</div>';
+                document.getElementById('loader').innerHTML = '<div style="color:#e74c3c; font-size:1.1rem; font-weight:bold; padding:20px; text-align:center;">تعذر تحميل الصورة من المصدر. اضغط لإعادة المحاولة.<br><button onclick="loadPage(' + pageNum + ')" style="margin-top:10px; padding:8px 16px; border-radius:8px; border:none; background:#2c6382; color:#fff; font-family:Tajawal; font-weight:bold; cursor:pointer;">إعادة المحاولة</button></div>';
             }
         };
 
