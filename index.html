@@ -229,14 +229,19 @@
         document.getElementById('pageInput').value = pageNum;
         closeMenu(); closeTafsir(); stopAudio();
 
-        const paddedPage = String(pageNum).padStart(3, '0');
+        const p = pageNum;
+        const p3 = String(pageNum).padStart(3, '0');
         const img = document.getElementById('mushafImage');
         
-        // شبكات موثوقة عالمياً تعمل بتقنية HTTPS لنقل صور صفحة المصحف دون حظر Mixed Content
+        // سيرفرات متعددة بالصيغتين (الرقم المباشر ورقم الثلاث خانات)
         const sources = [
-            `https://wsrv.nl/?url=quran.ksu.edu.sa/ayat/safahat1/${paddedPage}.png&output=png`,
-            `https://images.weserv.nl/?url=quran.ksu.edu.sa/ayat/safahat1/${paddedPage}.png&output=png`,
-            `https://corsproxy.io/?url=${encodeURIComponent('http://quran.ksu.edu.sa/ayat/safahat1/' + paddedPage + '.png')}`
+            `https://wsrv.nl/?url=quran.ksu.edu.sa/ayat/safahat1/${p}.png`,
+            `https://wsrv.nl/?url=quran.ksu.edu.sa/ayat/safahat1/${p3}.png`,
+            `https://cdn.jsdelivr.net/gh/Ghamdi007/Quran-Images-1@master/${p3}.png`,
+            `https://raw.githubusercontent.com/Ghamdi007/Quran-Images-1/master/${p3}.png`,
+            `https://wsrv.nl/?url=quran.ksu.edu.sa/ayat/safahat_v2/${p}.png`,
+            `images/${p}.png`,
+            `images/${p3}.png`
         ];
         
         let sourceIndex = 0;
@@ -250,7 +255,7 @@
             if (sourceIndex < sources.length) {
                 img.src = sources[sourceIndex];
             } else {
-                document.getElementById('loader').innerHTML = '<div style="color:#e74c3c; font-size:1.1rem; font-weight:bold; padding:20px; text-align:center;">تعذر تحميل الصورة من المصدر. اضغط لإعادة المحاولة.<br><button onclick="loadPage(' + pageNum + ')" style="margin-top:10px; padding:8px 16px; border-radius:8px; border:none; background:#2c6382; color:#fff; font-family:Tajawal; font-weight:bold; cursor:pointer;">إعادة المحاولة</button></div>';
+                document.getElementById('loader').innerHTML = '<div style="color:#e74c3c; font-size:1.1rem; font-weight:bold; padding:20px; text-align:center;">تعذر تحميل الصفحة. يرجى التحقق من اتصال الإنترنت.<br><button onclick="loadPage(' + pageNum + ')" style="margin-top:10px; padding:8px 16px; border-radius:8px; border:none; background:#2c6382; color:#fff; font-family:Tajawal; font-weight:bold; cursor:pointer;">إعادة المحاولة</button></div>';
             }
         };
 
