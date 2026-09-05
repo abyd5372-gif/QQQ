@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>المصحف التفاعلي - نظام الصور والإحداثيات</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-blue: #2c6382;
+            --highlight-color: rgba(94, 172, 211, 0.35);
+            --primary-dark: #153448;
+            --gold-accent: #d4af37;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #0a0a0a;
+            font-family: 'Tajawal', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; 
+        }
+
+        .mushaf-container {
+            position: relative;
+            height: 100vh;
+            aspect-ratio: 1024 / 1656; 
+            background: #f8f1e3;
+            box-shadow: 0 0 40px rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mushaf-image {
+            width: 100%; height: 100%;
+            object-fit: fill;
+            pointer-events: none;
+        }
+
+        .mushaf-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 10;
+        }
+
+        .ayah-group { fill: transparent; cursor: pointer; }
+        .ayah-group.active, .ayah-group:hover {
+            fill: var(--highlight-color);
+            mix-blend-mode: multiply; 
+        }
+
+        .page-turn-btn {
+            position: absolute;
+            top: 0; height: 100%; width: 15%;
+            z-index: 15; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s;
+            color: rgba(0,0,0,0.5); font-size: 3rem;
+            background: rgba(0,0,0,0.02);
+        }
+        .page-turn-btn:hover { opacity: 1; background: rgba(0,0,0,0.05); }
+        .btn-next { left: 0; }
+        .btn-prev { right: 0; }
+
+        .ayah-menu {
+            position: fixed; background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px); border: 1px solid rgba(44, 99, 130, 0.2);
+            border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: none; flex-direction: column; z-index: 10000; min-width: 160px;
+        }
+        .ayah-menu button {
+            background: none; border: none; padding: 12px 20px; text-align: right;
+            font-family: 'Tajawal'; font-size: 1rem; font-weight: 700; color: var(--primary-dark);
+            cursor: pointer; display: flex; align-items: center; gap: 12px;
+            border-bottom: 1px solid #eee; transition: 0.2s;
+        }
+        .ayah-menu button:last-child { border-bottom: none; }
+        .ayah-menu button:hover { background: #f0f4f8; color: var(--primary-blue); padding-right: 25px; }
+
+        .fab-btn {
+            position: fixed; bottom: 25px; right: 25px;
+            width: 60px; height: 60px;
+            background: var(--gold-accent); color: #fff;
+            border: none; border-radius: 50%;
+            font-size: 1.5rem; cursor: pointer; z-index: 9999;
+            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.5);
+            display: flex; justify-content: center; align-items: center;
+            transition: 0.3s;
+        }
+        .fab-btn:hover { transform: scale(1.1); }
+
+        .floating-controls {
+            position: fixed; bottom: 100px; right: 25px;
+            width: 300px; background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px); border-radius: 15px;
+            padding: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            z-index: 9998; opacity: 0; pointer-events: none;
+            transform: scale(0.9); transform-origin: bottom right; transition: 0.3s;
+        }
+        .floating-controls.show { opacity: 1; pointer-events: auto; transform: scale(1); }
+        
+        .controls-row { display: flex; gap: 10px; margin-bottom: 15px; align-items: center;}
+        .controls-row input, .controls-row select { 
+            width: 100%; padding: 10px; border-radius: 8px; 
+            border: 1px solid #ccc; font-family: 'Tajawal'; font-size: 1rem;
+        }
+        .btn-jump { background: var(--primary-blue); color: #fff; border: none; padding: 10px 15px; border-radius: 8px; font-family: 'Tajawal'; font-weight: bold; cursor: pointer;}
+        .stop-btn { width: 100%; background: #e74c3c; color: #fff; border: none; padding: 12px; border-radius: 8px; font-family: 'Tajawal'; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px;}
+
+        .floating-tafsir {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 85%; max-width: 500px; max-height: 70vh;
+            background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(15px);
+            border: 2px solid var(--gold-accent); border-radius: 15px;
+            padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            z-index: 10000; opacity: 0; pointer-events: none; transition: 0.3s;
+            display: flex; flex-direction: column;
+        }
+        .floating-tafsir.show { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
+        .tafsir-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px;}
+        .tafsir-header h3 { margin: 0; color: var(--primary-dark); font-size: 1.2rem; display: flex; align-items: center; gap: 8px;}
+        .close-btn { background: none; border: none; color: #e74c3c; font-size: 1.5rem; cursor: pointer; }
+        .tafsir-body { flex-grow: 1; overflow-y: auto; font-size: 1.15rem; line-height: 1.8; color: #333; padding-right: 10px;}
+
+        .loader { position: absolute; font-size: 2.5rem; color: var(--gold-accent); z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 10px;}
+        
+        .toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(44, 99, 130, 0.9); color: #fff;
+            padding: 12px 25px; border-radius: 30px; font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 10001;
+            opacity: 0; transition: 0.3s; pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+
+<!-- حاوية المصحف الرئيسية -->
+<div class="mushaf-container" id="mushafContainer">
+    <div id="loader" class="loader">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+    </div>
+    
+    <!-- تم إضافة onerror للتعامل مع حظر محرر الأكواد -->
+    <img id="mushafImage" src="" class="mushaf-image" onload="document.getElementById('loader').style.display='none'" onerror="handleImageError()">
+    
+    <div class="page-turn-btn btn-next" onclick="changePage(1)" title="الصفحة التالية"><i class="fa-solid fa-chevron-left"></i></div>
+    <div class="page-turn-btn btn-prev" onclick="changePage(-1)" title="الصفحة السابقة"><i class="fa-solid fa-chevron-right"></i></div>
+    
+    <svg class="mushaf-overlay" viewBox="0 0 1024 1656" preserveAspectRatio="none" id="svgOverlay"></svg>
+</div>
+
+<!-- القائمة المنبثقة -->
+<div id="ayahMenu" class="ayah-menu">
+    <button onclick="actionRepeat()"><i class="fa-solid fa-repeat"></i> تكرار الآية</button>
+    <button onclick="actionTafsir()"><i class="fa-solid fa-book-open"></i> التفسير الميسر</button>
+    <button onclick="actionCopy()"><i class="fa-solid fa-copy"></i> نسخ الآية</button>
+</div>
+
+<!-- أدوات التحكم -->
+<button class="fab-btn" onclick="toggleControls()"><i class="fa-solid fa-sliders"></i></button>
+
+<div id="floatingControls" class="floating-controls">
+    <div style="text-align: center; font-weight: bold; margin-bottom: 15px; color: var(--primary-dark); border-bottom: 1px solid #eee; padding-bottom: 10px;">إعدادات المصحف</div>
+    
+    <div class="controls-row">
+        <input type="number" id="pageInput" min="1" max="604" placeholder="رقم الصفحة">
+        <button class="btn-jump" onclick="jumpToPage()">انتقال</button>
+    </div>
+
+    <div class="controls-row">
+        <select id="quranReciter">
+            <option value="ar.alafasy">مشاري العفاسي</option>
+            <option value="ar.husary">محمود خليل الحصري</option>
+            <option value="ar.minshawi">محمد صديق المنشاوي</option>
+        </select>
+    </div>
+    
+    <button class="stop-btn" onclick="stopAudio()"><i class="fa-solid fa-stop"></i> إيقاف التلاوة</button>
+</div>
+
+<div id="floatingTafsir" class="floating-tafsir">
+    <div class="tafsir-header">
+        <h3 id="tafsirTitle"><i class="fa-solid fa-book-open-reader"></i> التفسير الميسر</h3>
+        <button class="close-btn" onclick="closeTafsir()"><i class="fa-solid fa-times-circle"></i></button>
+    </div>
+    <div id="tafsirText" class="tafsir-body"></div>
+</div>
+
+<script>
+    const localDatabase = {
+        1: [ 
+            { surah: 1, ayah: 1, rects: [{ x: 300, y: 550, w: 424, h: 90 }] },
+            { surah: 1, ayah: 2, rects: [{ x: 610, y: 650, w: 290, h: 90 }, { x: 120, y: 650, w: 440, h: 90 }] },
+            { surah: 1, ayah: 3, rects: [{ x: 500, y: 750, w: 400, h: 90 }] },
+            { surah: 1, ayah: 4, rects: [{ x: 120, y: 750, w: 350, h: 90 }] },
+            { surah: 1, ayah: 5, rects: [{ x: 450, y: 850, w: 450, h: 90 }] },
+            { surah: 1, ayah: 6, rects: [{ x: 120, y: 850, w: 300, h: 90 }, { x: 480, y: 950, w: 420, h: 90 }] },
+            { surah: 1, ayah: 7, rects: [{ x: 120, y: 950, w: 330, h: 90 }, { x: 120, y: 1050, w: 780, h: 90 }] }
+        ],
+        3: [ 
+            { surah: 2, ayah: 6, rects: [{ x: 90, y: 140, w: 840, h: 90 }, { x: 740, y: 235, w: 190, h: 90 }] },
+            { surah: 2, ayah: 7, rects: [{ x: 90, y: 235, w: 650, h: 90 }, { x: 380, y: 330, w: 550, h: 90 }] },
+            { surah: 2, ayah: 8, rects: [{ x: 90, y: 330, w: 290, h: 90 }, { x: 90, y: 425, w: 840, h: 90 }] },
+            { surah: 2, ayah: 9, rects: [{ x: 90, y: 520, w: 840, h: 90 }, { x: 620, y: 615, w: 310, h: 90 }] },
+            { surah: 2, ayah: 10, rects: [{ x: 90, y: 615, w: 530, h: 90 }, { x: 330, y: 710, w: 600, h: 90 }] }
+        ]
+    };
+
+    let currentPage = 1;
+    let currentSelectedAyah = null;
+    let audioPlayer = new Audio();
+    let repeatCount = 0;
+
+    window.onload = () => loadPage(currentPage);
+
+    function handleImageError() {
+        document.getElementById('loader').innerHTML = `<div style="font-size:1.1rem; color:#fff; background:#e74c3c; padding:15px; border-radius:10px; text-align:center; max-width:80%;">عذراً! محرر الأكواد الذي تستخدمه يمنع تحميل الصور لحماية سيرفراته.<br><br><b>الحل:</b> احفظ هذا الكود كملف بصيغة <b>.html</b> على كمبيوترك وافتحه بالمتصفح، وسيعمل فوراً.</div>`;
+    }
+
+    function loadPage(pageNum) {
+        document.getElementById('loader').style.display = 'flex';
+        document.getElementById('loader').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        document.getElementById('svgOverlay').innerHTML = ''; 
+        document.getElementById('pageInput').value = pageNum;
+        closeMenu(); closeTafsir(); stopAudio();
+
+        const paddedPage = String(pageNum).padStart(3, '0');
+        const originalUrl = `https://quran.ksu.edu.sa/ayat/safahat1/${paddedPage}.png`;
+        
+        // استخدام بروكسي لتخطي حظر محرر الأكواد (CORS Bypass)
+        document.getElementById('mushafImage').src = `https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`;
+
+        if (localDatabase[pageNum]) {
+            drawCoordinates(localDatabase[pageNum]);
+            showToast(`تم تحميل صفحة ${pageNum} (الإحداثيات مفعلة)`);
+        } else {
+            showToast(`تم تحميل صفحة ${pageNum} (تفعيل التظليل يتطلب ربط قاعدة البيانات لاحقاً)`);
+        }
+    }
+
+    function drawCoordinates(ayahsData) {
+        const svg = document.getElementById('svgOverlay');
+        
+        ayahsData.forEach((ayahData) => {
+            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            g.classList.add("ayah-group");
+            g.addEventListener('click', (e) => showMenu(e, g, ayahData));
+
+            ayahData.rects.forEach(rectData => {
+                const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                rect.setAttribute("x", rectData.x);
+                rect.setAttribute("y", rectData.y);
+                rect.setAttribute("width", rectData.w);
+                rect.setAttribute("height", rectData.h);
+                rect.setAttribute("rx", "8"); 
+                rect.setAttribute("ry", "8");
+                g.appendChild(rect);
+            });
+            svg.appendChild(g);
+        });
+    }
+
+    function changePage(direction) {
+        let newPage = currentPage + direction; 
+        if (newPage >= 1 && newPage <= 604) {
+            currentPage = newPage;
+            loadPage(currentPage);
+        }
+    }
+
+    function jumpToPage() {
+        let val = parseInt(document.getElementById('pageInput').value);
+        if (val >= 1 && val <= 604) {
+            currentPage = val;
+            loadPage(currentPage);
+            document.getElementById('floatingControls').classList.remove('show');
+        } else {
+            alert("رقم الصفحة يجب أن يكون بين 1 و 604");
+            document.getElementById('pageInput').value = currentPage;
+        }
+    }
+
+    function toggleControls() {
+        document.getElementById('floatingControls').classList.toggle('show');
+        closeMenu();
+    }
+
+    function showMenu(event, groupElement, ayahData) {
+        event.stopPropagation();
+        currentSelectedAyah = ayahData;
+        
+        document.querySelectorAll('.ayah-group').forEach(el => el.classList.remove('active'));
+        groupElement.classList.add('active');
+
+        const menu = document.getElementById('ayahMenu');
+        menu.style.display = 'flex';
+        
+        let topPos = event.clientY + 15;
+        let leftPos = event.clientX;
+        if (topPos + 160 > window.innerHeight) topPos = window.innerHeight - 170;
+        if (leftPos + 170 > window.innerWidth) leftPos = window.innerWidth - 180;
+        
+        menu.style.top = topPos + 'px';
+        menu.style.left = leftPos + 'px';
+        
+        document.getElementById('floatingControls').classList.remove('show');
+    }
+
+    function closeMenu() {
+        document.getElementById('ayahMenu').style.display = 'none';
+        if (!document.getElementById('floatingTafsir').classList.contains('show') && audioPlayer.paused) {
+            document.querySelectorAll('.ayah-group').forEach(el => el.classList.remove('active'));
+        }
+    }
+
+    function closeTafsir() {
+        document.getElementById('floatingTafsir').classList.remove('show');
+        if (audioPlayer.paused) {
+            document.querySelectorAll('.ayah-group').forEach(el => el.classList.remove('active'));
+        }
+    }
+
+    document.addEventListener('click', (e) => {
+        if(!e.target.closest('.ayah-menu') && !e.target.closest('.ayah-group') && !e.target.closest('.page-turn-btn')) closeMenu();
+        if(!e.target.closest('.floating-controls') && !e.target.closest('.fab-btn')) {
+            document.getElementById('floatingControls').classList.remove('show');
+        }
+    });
+
+    async function actionTafsir() {
+        if (!currentSelectedAyah) return;
+        const tafsirWindow = document.getElementById('floatingTafsir');
+        const tafsirTitle = document.getElementById('tafsirTitle');
+        const tafsirText = document.getElementById('tafsirText');
+        
+        tafsirTitle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري جلب التفسير...`;
+        tafsirText.innerHTML = '';
+        tafsirWindow.classList.add('show');
+        document.getElementById('ayahMenu').style.display = 'none';
+
+        try {
+            const res = await fetch(`https://api.alquran.cloud/v1/ayah/${currentSelectedAyah.surah}:${currentSelectedAyah.ayah}/ar.muyassar`);
+            const data = await res.json();
+            
+            tafsirTitle.innerHTML = `<i class="fa-solid fa-book-open"></i> سورة ${data.data.surah.name} - ﴿${currentSelectedAyah.ayah}﴾`;
+            tafsirText.innerHTML = `<strong>الآية:</strong> <span style="font-family:'Amiri', serif; font-size:1.4rem;">${data.data.text}</span><hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;"><strong>التفسير الميسر:</strong><br>${data.data.text}`;
+        } catch (error) {
+            tafsirTitle.innerHTML = "حدث خطأ!";
+            tafsirText.innerHTML = "يرجى التحقق من الاتصال بالإنترنت.";
+        }
+    }
+
+    async function actionRepeat() {
+        if (!currentSelectedAyah) return;
+        let count = prompt("كم مرة تريد تكرار هذه الآية؟", "3");
+        if (count === null || isNaN(count) || count <= 0) { closeMenu(); return; }
+        
+        repeatCount = parseInt(count) - 1;
+        document.getElementById('ayahMenu').style.display = 'none';
+        
+        const reciter = document.getElementById('quranReciter').value;
+        try {
+            const res = await fetch(`https://api.alquran.cloud/v1/ayah/${currentSelectedAyah.surah}:${currentSelectedAyah.ayah}/${reciter}`);
+            const data = await res.json();
+            audioPlayer.src = data.data.audio;
+            audioPlayer.play();
+        } catch (error) {
+            alert("حدث خطأ في جلب الصوت.");
+        }
+    }
+
+    async function actionCopy() {
+        if (!currentSelectedAyah) return;
+        document.getElementById('ayahMenu').style.display = 'none';
+        
+        try {
+            const res = await fetch(`https://api.alquran.cloud/v1/ayah/${currentSelectedAyah.surah}:${currentSelectedAyah.ayah}/quran-uthmani`);
+            const data = await res.json();
+            navigator.clipboard.writeText(`${data.data.text} ﴿${currentSelectedAyah.ayah}﴾ [${data.data.surah.name}]`)
+                .then(() => alert('تم نسخ الآية بنجاح!'));
+        } catch (error) { alert("تعذر النسخ حالياً."); }
+    }
+
+    audioPlayer.onended = function() {
+        if (repeatCount > 0) { repeatCount--; audioPlayer.play(); } 
+        else { document.querySelectorAll('.ayah-group').forEach(el => el.classList.remove('active')); }
+    };
+
+    function stopAudio() {
+        audioPlayer.pause(); audioPlayer.currentTime = 0; repeatCount = 0;
+        if (!document.getElementById('floatingTafsir').classList.contains('show')) {
+            document.querySelectorAll('.ayah-group').forEach(el => el.classList.remove('active'));
+        }
+    }
+
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.innerText = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+</script>
+
+</body>
+</html>
