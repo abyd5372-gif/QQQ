@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المصحف الشريف - التتبع الصوتي</title>
+    <title>المصحف التفاعلي - دعم SVG المتكامل</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <style>
         body {
             background-color: #1a1a1a;
@@ -12,14 +13,13 @@
         }
         .mushaf-container {
             background-color: #FDF7E2;
-            border: 10px solid #D4C3A3;
+            border: 12px solid #D4C3A3;
             box-shadow: 0 15px 35px rgba(0,0,0,0.6);
         }
-        /* تظليل الآية عند القراءة */
-        .ayah-highlight {
+        /* كلاس التظليل للآية داخل ملف SVG */
+        .active-ayah {
+            fill: #8B0000 !important;
             background-color: rgba(212, 175, 55, 0.4);
-            border-radius: 4px;
-            transition: background-color 0.3s;
         }
     </style>
 </head>
@@ -38,14 +38,11 @@
         </div>
     </div>
 
-    <!-- عرض صفحة المصحف عبر ملفات SVG الموجودة معك -->
+    <!-- إطار عرض المصحف عبر SVG -->
     <div class="mushaf-container w-full max-w-2xl p-4 rounded-b-xl relative flex flex-col items-center">
-        
-        <!-- هنا سيتم عرض ملف الـ SVG الخاص بالصفحة (مثلاً 2.svgz) -->
-        <div id="svg-view-container" class="w-full flex justify-center relative">
+        <div id="svg-wrapper" class="w-full overflow-hidden flex justify-center">
             <div class="text-amber-800 font-bold py-20">جاري تحميل صفحة المصحف...</div>
         </div>
-
     </div>
 
     <audio id="quran-audio" class="hidden"></audio>
@@ -54,48 +51,44 @@
         const CLIENT_ID = '7e8ed480-bcca-4442-985e-7d45ac9cbc06';
         const CLIENT_SECRET = 'qfcs_74a0ff300e7b4b568b5724d8a60ae377ef801ab376a146c39a9606b3a7f5e104';
 
-        let currentPage = 2; // ابدأ بصفحة 2 مثلاً
+        let currentPage = 2;
         let versesData = [];
         let isPlaying = false;
         let currentVerseIndex = 0;
 
-        const svgContainer = document.getElementById('svg-view-container');
+        const svgWrapper = document.getElementById('svg-wrapper');
         const pageLabel = document.getElementById('page-label');
         const audioEl = document.getElementById('quran-audio');
         const playBtn = document.getElementById('play-btn');
 
-        function loadPage(page) {
+        async function loadPage(page) {
             stopAudio();
             pageLabel.innerText = 'صـ ' + page;
-            svgContainer.innerHTML = '<div class="text-amber-800 font-bold py-20">جاري تحميل صفحة المصحف...</div>';
+            svgWrapper.innerHTML = '<div class="text-amber-800 font-bold py-20">جاري تحميل صفحة المصحف...</div>';
 
-            // 1. جلب ملف الـ SVG المباشر من مجلدك على GitHub (مثلاً 2.svgz أو 2.svg)
-            // ملاحظة: إذا كانت الملفات بصيغة svgz ضغطاً، قد تحتاج لفك ضغطها أو جلبها كـ object/embed
-            const svgUrl = `./${page}.svgz`; 
+            try {
+                // 1. جلب محتوى ملف الـ SVG مباشرة (بما أنه موجود في المستودع)
+                const svgRes = await fetch(`./${page}.svgz`); // أو ${page}.svg حسب امتداد ملفاتك الفعلية
+                const svgText = await svgRes.text();
+                svgWrapper.innerHTML = svgText;
 
-            // نقوم بعرض ملف الـ SVG داخل عنصر <object> أو <embed> لضمان ظهوره كاملاً بكل أشكاله
-            svgContainer.innerHTML = `
-                <object data="${svgUrl}" type="image/svg+xml" class="w-full h-auto max-h-[75vh]">
-                    متصفحك لا يدعم عرض ملفات المصحف.
-                </object>
-            `;
+                // 2. جلب بيانات الآيات للتحكم بالتظليل والصوت
+                const apiRes = await fetch(`https://api.quran.com/api/v4/quran/verses/uthmani?page_number=${page}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-client-id': CLIENT_ID,
+                        'Authorization': `Bearer ${CLIENT_SECRET}`
+                    }
+                });
+                const apiData = await apiRes.json();
+                versesData = apiData.verses || [];
 
-            // 2. جلب بيانات الآيات لنفس الصفحة من الـ API لتفعيل التتبع الصوتي والتظليل
-            fetch(`https://api.quran.com/api/v4/quran/verses/uthmani?page_number=${page}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-client-id': CLIENT_ID,
-                    'Authorization': `Bearer ${CLIENT_SECRET}`
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                versesData = data.verses || [];
-            })
-            .catch(err => console.error("خطأ في جلب الآيات:", err));
+            } catch (err) {
+                svgWrapper.innerHTML = '<div class="text-red-600 font-bold py-20">فشل تحميل ملف الصفحة.</div>';
+                console.error(err);
+            }
         }
 
-        // دوال الصوت والتلاوة
         function togglePlay() {
             if (isPlaying) {
                 stopAudio();
@@ -115,6 +108,7 @@
             playBtn.className = 'px-5 py-2 bg-red-600 hover:bg-red-500 font-bold rounded shadow';
 
             const verseKey = versesData[currentVerseIndex].verse_key;
+            highlightVerse(verseKey);
 
             fetch(`https://api.quran.com/api/v4/recitations/7/by_ayah/${verseKey}`)
                 .then(res => res.json())
@@ -132,6 +126,22 @@
             audioEl.pause();
             playBtn.innerText = 'تشغيل العفاسي ▶';
             playBtn.className = 'px-5 py-2 bg-green-600 hover:bg-green-500 font-bold rounded shadow';
+            highlightVerse('');
+        }
+
+        function highlightVerse(verseKey) {
+            // إزالة التظليل السابق داخل الـ SVG
+            svgWrapper.querySelectorAll('.active-ayah').forEach(el => el.classList.remove('active-ayah'));
+            
+            if (verseKey) {
+                // ملاحظة: ملفات SVG الخاصة بالقرآن عادة تربط العناصر بمعرفات (IDs) تحاكي أرقام الآيات أو السور
+                // يمكنك هنا استهداف العنصر المناسب داخل الـ SVG بناءً على بنية ملفاتك
+                const [surah, ayah] = verseKey.split(':');
+                const targetElement = svgWrapper.querySelector(`#v-${surah}-${ayah}`) || svgWrapper.querySelector(`[data-verse="${verseKey}"]`);
+                if (targetElement) {
+                    targetElement.classList.add('active-ayah');
+                }
+            }
         }
 
         audioEl.onended = () => {
@@ -148,7 +158,6 @@
             }
         }
 
-        // تشغيل الصفحة عند التحميل
         loadPage(currentPage);
     </script>
 </body>
