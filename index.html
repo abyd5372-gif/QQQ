@@ -3,115 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مصحف المدينة - التقنية الاحترافية (QCF)</title>
-    
-    <!-- استدعاء Tailwind CSS للتنسيق -->
+    <title>المصحف التفاعلي - عرض المصحف الحقيقي</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&display=swap" rel="stylesheet">
     
     <style>
         body {
-            background-color: #262626;
+            background-color: #1a1a1a;
+            font-family: 'Amiri Quran', serif;
         }
-        
-        /* 
-           الحل السحري هنا: 
-           استخدمنا وسيط (corsproxy.io) لجلب الخط إجبارياً من سيرفرات Quran.com 
-           لتجاوز حظر المتصفح (CORS) دون الحاجة لرفع الخط يدوياً.
-        */
-        @font-face {
-            font-family: 'p2';
-            src: url('https://corsproxy.io/?https://quran.com/fonts/quran/hafs/v1/woff2/p2.woff2') format('woff2');
-            font-display: swap;
+        .mushaf-frame {
+            background-color: #FDF7E2;
+            border: 14px solid #D4C3A3;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
         }
-
-        /* تنسيق الخط والصفحة */
-        .quran-page-2 {
-            font-family: 'p2', sans-serif;
-            font-size: 2.5rem; /* حجم الخط الذي يحدد حجم الصفحة */
-            line-height: 1.7;
-            color: #1a1a1a;
+        .ayah-text {
+            line-height: 2.8;
+            text-align: justify;
+            text-justify: kashida;
         }
-
-        .mushaf-paper {
-            background-color: #FDF7E2; /* لون ورق المصحف */
-            border: 12px solid #D4C3A3;
-            min-height: 70vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        /* تأثيرات الكلمات */
-        .word {
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .word:hover {
+        .active-ayah {
+            background-color: rgba(212, 175, 55, 0.4);
             color: #8B0000;
-            background-color: rgba(212, 175, 55, 0.3);
             border-radius: 4px;
+            padding: 2px 4px;
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center py-10 px-4">
+<body class="min-h-screen flex flex-col items-center py-6 px-4">
 
-    <!-- إطار المصحف -->
-    <div class="mushaf-paper p-4 md:p-8 w-full max-w-2xl shadow-2xl rounded-sm">
-        <div id="quran-container" class="quran-page-2">
-            <div class="text-xl font-sans text-center text-amber-700">جاري تحميل الخط الاحترافي والصفحة...</div>
+    <!-- شريط التحكم والتلاوة -->
+    <div class="w-full max-w-3xl bg-gray-900 text-white p-4 rounded-t-xl shadow-xl flex flex-wrap gap-4 justify-between items-center border border-gray-700">
+        <button id="play-btn" onclick="togglePlay()" class="px-6 py-2 bg-green-600 hover:bg-green-500 font-bold rounded shadow transition">
+            تشغيل العفاسي ▶
+        </button>
+
+        <div class="flex items-center gap-4 bg-gray-800 px-4 py-2 rounded">
+            <button onclick="changePage(-1)" class="text-gray-300 hover:text-white font-bold">السابق</button>
+            <span id="page-label" class="font-bold text-lg text-amber-400 min-w-[70px] text-center">صـ 2</span>
+            <button onclick="changePage(1)" class="text-gray-300 hover:text-white font-bold">التالي</button>
         </div>
     </div>
 
-    <!-- كود الجافاسكربت لجلب البيانات -->
+    <!-- حاوية المصحف الحقيقي -->
+    <div class="mushaf-frame w-full max-w-3xl p-6 md:p-12 rounded-b-xl relative min-h-[75vh] flex flex-col justify-between">
+        
+        <!-- رأس الصفحة -->
+        <div class="flex justify-between items-center border-b-2 border-[#8B7355] pb-3 mb-6 text-[#8B7355] font-bold text-lg">
+            <span>سُورَةُ البَقَرَةِ</span>
+            <span>الجُزْءُ الْأَوَّلُ</span>
+        </div>
+
+        <!-- نص الآيات بتنسيق المصحف المطبوع -->
+        <div id="mushaf-content" class="ayah-text text-2xl md:text-3xl text-slate-900 flex-1">
+            <div class="text-center text-amber-800 font-bold mt-20">جاري تحميل المصحف...</div>
+        </div>
+
+        <!-- تذييل الصفحة (رقم الصفحة) -->
+        <div id="page-footer" class="text-center mt-6 pt-4 border-t-2 border-[#8B7355] text-[#8B7355] font-bold text-xl">
+            ٢
+        </div>
+    </div>
+
+    <audio id="quran-audio" class="hidden"></audio>
+
     <script>
-        // جلب البيانات للصفحة 2 باستخدام الحقل code_v1
-        fetch('https://api.quran.com/api/v4/verses/by_page/2?words=true&word_fields=code_v1,line_number')
+        const CLIENT_ID = '7e8ed480-bcca-4442-985e-7d45ac9cbc06';
+        const CLIENT_SECRET = 'qfcs_74a0ff300e7b4b568b5724d8a60ae377ef801ab376a146c39a9606b3a7f5e104';
+
+        let currentPage = 2;
+        let versesData = [];
+        let isPlaying = false;
+        let currentVerseIndex = 0;
+
+        const contentDiv = document.getElementById('mushaf-content');
+        const pageLabel = document.getElementById('page-label');
+        const pageFooter = document.getElementById('page-footer');
+        const audioEl = document.getElementById('quran-audio');
+        const playBtn = document.getElementById('play-btn');
+
+        // تحويل الأرقام إلى العربية
+        const toArabicNum = (num) => num.toString().replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+
+        function loadMushafPage(page) {
+            stopAudio();
+            pageLabel.innerText = 'صـ ' + page;
+            pageFooter.innerText = toArabicNum(page);
+            contentDiv.innerHTML = '<div class="text-center text-amber-800 font-bold mt-20">جاري تحميل الصفحة...</div>';
+
+            // جلب البيانات بالاعتماد على الـ API الخاص بك
+            fetch(`https://api.quran.com/api/v4/quran/verses/uthmani?page_number=${page}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-client-id': CLIENT_ID,
+                    'Authorization': `Bearer ${CLIENT_SECRET}`
+                }
+            })
             .then(res => res.json())
             .then(data => {
-                const container = document.getElementById('quran-container');
-                container.innerHTML = ''; // تفريغ رسالة التحميل
+                versesData = data.verses || [];
+                contentDiv.innerHTML = '';
 
-                let currentLine = 1;
-                let lineDiv = document.createElement('div');
-                
-                // تنسيق السطر الافتراضي (توزيع الكلمات)
-                lineDiv.className = "flex justify-between items-center w-full";
-                
-                data.verses.forEach(verse => {
-                    verse.words.forEach(word => {
-                        // إذا بدأنا في سطر جديد
-                        if (word.line_number !== currentLine) {
-                            container.appendChild(lineDiv);
-                            lineDiv = document.createElement('div');
-                            
-                            // توسيط السطر الأخير أو الأول في السورة لكي لا تتشتت الكلمات
-                            if (currentLine === 15 || currentLine === 1) {
-                                lineDiv.className = "flex justify-center gap-4 w-full";
-                            } else {
-                                lineDiv.className = "flex justify-between items-center w-full";
-                            }
-                            
-                            currentLine = word.line_number;
-                        }
+                versesData.forEach((verse, index) => {
+                    const span = document.createElement('span');
+                    span.className = 'cursor-pointer inline-block mx-1 transition duration-200 hover:text-amber-700';
+                    span.innerHTML = `${verse.text_uthmani} <span class="text-amber-800 text-xl">﴿${toArabicNum(verse.verse_key.split(':')[1])}﴾</span>`;
+                    span.dataset.verseKey = verse.verse_key;
+                    
+                    // النقر على الآية لتشغيلها مباشرة
+                    span.onclick = () => {
+                        currentVerseIndex = index;
+                        playVerse();
+                    };
 
-                        // إنشاء الكلمة بالرمز المشفر
-                        const wordSpan = document.createElement('span');
-                        wordSpan.className = 'word';
-                        wordSpan.innerHTML = word.code_v1; 
-                        
-                        lineDiv.appendChild(wordSpan);
-                    });
+                    contentDiv.appendChild(span);
                 });
-                
-                // إضافة السطر الأخير للصفحة
-                container.appendChild(lineDiv);
             })
             .catch(err => {
-                console.error("Error:", err);
-                document.getElementById('quran-container').innerHTML = 
-                    '<div class="text-red-500 font-sans text-center">حدث خطأ في جلب البيانات، يرجى تحديث الصفحة.</div>';
+                contentDiv.innerHTML = '<div class="text-red-600 text-center mt-20">حدث خطأ في تحميل الصفحة.</div>';
+                console.error(err);
             });
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopAudio();
+            } else {
+                if (versesData.length > 0) playVerse();
+            }
+        }
+
+        function playVerse() {
+            if (currentVerseIndex >= versesData.length) {
+                stopAudio();
+                return;
+            }
+
+            isPlaying = true;
+            playBtn.innerText = 'إيقاف ⏸';
+            playBtn.className = 'px-6 py-2 bg-red-600 hover:bg-red-500 font-bold rounded shadow transition';
+
+            const verseKey = versesData[currentVerseIndex].verse_key;
+            highlightActiveVerse(verseKey);
+
+            fetch(`https://api.quran.com/api/v4/recitations/7/by_ayah/${verseKey}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.audio_files && data.audio_files.length > 0) {
+                        let audioUrl = data.audio_files[0].url;
+                        audioEl.src = audioUrl.startsWith('http') ? audioUrl : `https://verses.quran.com/${audioUrl}`;
+                        audioEl.play();
+                    }
+                });
+        }
+
+        function stopAudio() {
+            isPlaying = false;
+            audioEl.pause();
+            playBtn.innerText = 'تشغيل العفاسي ▶';
+            playBtn.className = 'px-6 py-2 bg-green-600 hover:bg-green-500 font-bold rounded shadow transition';
+            highlightActiveVerse('');
+        }
+
+        function highlightActiveVerse(verseKey) {
+            document.querySelectorAll('.active-ayah').forEach(el => el.classList.remove('active-ayah'));
+            if (verseKey) {
+                const target = contentDiv.querySelector(`[data-verse-key="${verseKey}"]`);
+                if (target) target.classList.add('active-ayah');
+            }
+        }
+
+        audioEl.onended = () => {
+            currentVerseIndex++;
+            playVerse();
+        };
+
+        function changePage(step) {
+            const newPage = currentPage + step;
+            if (newPage >= 1 && newPage <= 604) {
+                currentPage = newPage;
+                currentVerseIndex = 0;
+                loadMushafPage(currentPage);
+            }
+        }
+
+        // تشغيل الصفحة عند التحميل
+        loadMushafPage(currentPage);
     </script>
 </body>
 </html>
