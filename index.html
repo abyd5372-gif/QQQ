@@ -2,47 +2,97 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المصحف التفاعلي - دعم SVG المتكامل</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>المصحف الشريف - تظليل تفاعلي</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&display=swap" rel="stylesheet">
     
     <style>
-        body {
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #ffffff;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Amiri Quran', serif;
+        }
+
+        /* شريط تحكم علوي أنيق وصغير */
+        .top-bar {
+            width: 100%;
             background-color: #1a1a1a;
-            font-family: system-ui, sans-serif;
+            color: white;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 50;
         }
-        .mushaf-container {
-            background-color: #FDF7E2;
-            border: 12px solid #D4C3A3;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+
+        /* حاوية المصحف بيضاء بالكامل وتاخذ باقي المساحة */
+        .mushaf-screen {
+            flex: 1;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            background-color: #ffffff;
+            text-align: justify;
+            text-justify: kashida;
+            line-height: 2.8;
+            font-size: 1.8rem;
         }
-        /* كلاس التظليل للآية داخل ملف SVG */
+
+        @media (min-width: 768px) {
+            .mushaf-screen {
+                font-size: 2.4rem;
+                padding: 40px 80px;
+            }
+        }
+
+        /* تظليل الآية النشطة أثناء التلاوة */
         .active-ayah {
-            fill: #8B0000 !important;
-            background-color: rgba(212, 175, 55, 0.4);
+            background-color: #fef08a !important; /* أصفر خفيف وواضح */
+            color: #991b1b !important; /* أحمر داكن للنص المقروء */
+            border-radius: 6px;
+            padding: 2px 6px;
+            box-shadow: 0 0 4px rgba(250, 204, 21, 0.5);
+        }
+
+        .ayah-item {
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: inline;
+        }
+
+        .ayah-item:hover {
+            background-color: #fef9c3;
+            border-radius: 4px;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center py-6 px-2">
+<body>
 
-    <!-- شريط التحكم العلوي -->
-    <div class="w-full max-w-2xl bg-gray-900 text-white p-3 rounded-t-xl shadow-lg flex justify-between items-center border border-gray-700 mb-2">
-        <button id="play-btn" onclick="togglePlay()" class="px-5 py-2 bg-green-600 hover:bg-green-500 font-bold rounded shadow">
+    <!-- شريط التحكم -->
+    <div class="top-bar">
+        <button id="play-btn" onclick="togglePlay()" class="px-4 py-1.5 bg-green-600 hover:bg-green-500 font-bold text-sm rounded transition font-sans">
             تشغيل العفاسي ▶
         </button>
 
-        <div class="flex items-center gap-3 bg-gray-800 px-3 py-1.5 rounded">
-            <button onclick="changePage(-1)" class="text-gray-300 hover:text-white font-bold">السابق</button>
+        <div class="flex items-center gap-3 text-sm font-sans">
+            <button onclick="changePage(-1)" class="bg-gray-800 px-3 py-1 rounded hover:bg-gray-700">السابق</button>
             <span id="page-label" class="font-bold text-amber-400">صـ 2</span>
-            <button onclick="changePage(1)" class="text-gray-300 hover:text-white font-bold">التالي</button>
+            <button onclick="changePage(1)" class="bg-gray-800 px-3 py-1 rounded hover:bg-gray-700">التالي</button>
         </div>
     </div>
 
-    <!-- إطار عرض المصحف عبر SVG -->
-    <div class="mushaf-container w-full max-w-2xl p-4 rounded-b-xl relative flex flex-col items-center">
-        <div id="svg-wrapper" class="w-full overflow-hidden flex justify-center">
-            <div class="text-amber-800 font-bold py-20">جاري تحميل صفحة المصحف...</div>
-        </div>
+    <!-- شاشة المصحف البيضاء -->
+    <div id="mushaf-content" class="mushaf-screen">
+        <div class="text-center text-amber-800 font-bold mt-20 font-sans">جاري تحميل الآيات...</div>
     </div>
 
     <audio id="quran-audio" class="hidden"></audio>
@@ -51,42 +101,54 @@
         const CLIENT_ID = '7e8ed480-bcca-4442-985e-7d45ac9cbc06';
         const CLIENT_SECRET = 'qfcs_74a0ff300e7b4b568b5724d8a60ae377ef801ab376a146c39a9606b3a7f5e104';
 
-        let currentPage = 2;
+        let currentPage = 2; // نبدأ بصفحة 2
         let versesData = [];
         let isPlaying = false;
         let currentVerseIndex = 0;
 
-        const svgWrapper = document.getElementById('svg-wrapper');
+        const contentDiv = document.getElementById('mushaf-content');
         const pageLabel = document.getElementById('page-label');
         const audioEl = document.getElementById('quran-audio');
         const playBtn = document.getElementById('play-btn');
 
-        async function loadPage(page) {
+        const toArabicNum = (num) => num.toString().replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+
+        function loadPage(page) {
             stopAudio();
             pageLabel.innerText = 'صـ ' + page;
-            svgWrapper.innerHTML = '<div class="text-amber-800 font-bold py-20">جاري تحميل صفحة المصحف...</div>';
+            contentDiv.innerHTML = '<div class="text-center text-amber-800 font-bold mt-20 font-sans">جاري تحميل الآيات...</div>';
 
-            try {
-                // 1. جلب محتوى ملف الـ SVG مباشرة (بما أنه موجود في المستودع)
-                const svgRes = await fetch(`./${page}.svgz`); // أو ${page}.svg حسب امتداد ملفاتك الفعلية
-                const svgText = await svgRes.text();
-                svgWrapper.innerHTML = svgText;
+            fetch(`https://api.quran.com/api/v4/quran/verses/uthmani?page_number=${page}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-client-id': CLIENT_ID,
+                    'Authorization': `Bearer ${CLIENT_SECRET}`
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                versesData = data.verses || [];
+                contentDiv.innerHTML = '';
 
-                // 2. جلب بيانات الآيات للتحكم بالتظليل والصوت
-                const apiRes = await fetch(`https://api.quran.com/api/v4/quran/verses/uthmani?page_number=${page}`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-client-id': CLIENT_ID,
-                        'Authorization': `Bearer ${CLIENT_SECRET}`
-                    }
+                versesData.forEach((verse, index) => {
+                    const span = document.createElement('span');
+                    span.className = 'ayah-item mx-1';
+                    span.innerHTML = `${verse.text_uthmani} <span class="text-amber-800 font-normal text-[85%]">﴿${toArabicNum(verse.verse_key.split(':')[1])}﴾</span>`;
+                    span.dataset.verseKey = verse.verse_key;
+                    
+                    // النقر على الآية لتشغيلها وتظليلها فوراً
+                    span.onclick = () => {
+                        currentVerseIndex = index;
+                        playVerse();
+                    };
+
+                    contentDiv.appendChild(span);
                 });
-                const apiData = await apiRes.json();
-                versesData = apiData.verses || [];
-
-            } catch (err) {
-                svgWrapper.innerHTML = '<div class="text-red-600 font-bold py-20">فشل تحميل ملف الصفحة.</div>';
+            })
+            .catch(err => {
+                contentDiv.innerHTML = '<div class="text-red-600 text-center mt-20 font-sans">حدث خطأ في جلب الآيات.</div>';
                 console.error(err);
-            }
+            });
         }
 
         function togglePlay() {
@@ -105,10 +167,10 @@
 
             isPlaying = true;
             playBtn.innerText = 'إيقاف ⏸';
-            playBtn.className = 'px-5 py-2 bg-red-600 hover:bg-red-500 font-bold rounded shadow';
+            playBtn.className = 'px-4 py-1.5 bg-red-600 hover:bg-red-500 font-bold text-sm rounded transition font-sans';
 
             const verseKey = versesData[currentVerseIndex].verse_key;
-            highlightVerse(verseKey);
+            highlightActiveVerse(verseKey);
 
             fetch(`https://api.quran.com/api/v4/recitations/7/by_ayah/${verseKey}`)
                 .then(res => res.json())
@@ -125,21 +187,17 @@
             isPlaying = false;
             audioEl.pause();
             playBtn.innerText = 'تشغيل العفاسي ▶';
-            playBtn.className = 'px-5 py-2 bg-green-600 hover:bg-green-500 font-bold rounded shadow';
-            highlightVerse('');
+            playBtn.className = 'px-4 py-1.5 bg-green-600 hover:bg-green-500 font-bold text-sm rounded transition font-sans';
+            highlightActiveVerse('');
         }
 
-        function highlightVerse(verseKey) {
-            // إزالة التظليل السابق داخل الـ SVG
-            svgWrapper.querySelectorAll('.active-ayah').forEach(el => el.classList.remove('active-ayah'));
-            
+        function highlightActiveVerse(verseKey) {
+            document.querySelectorAll('.active-ayah').forEach(el => el.classList.remove('active-ayah'));
             if (verseKey) {
-                // ملاحظة: ملفات SVG الخاصة بالقرآن عادة تربط العناصر بمعرفات (IDs) تحاكي أرقام الآيات أو السور
-                // يمكنك هنا استهداف العنصر المناسب داخل الـ SVG بناءً على بنية ملفاتك
-                const [surah, ayah] = verseKey.split(':');
-                const targetElement = svgWrapper.querySelector(`#v-${surah}-${ayah}`) || svgWrapper.querySelector(`[data-verse="${verseKey}"]`);
-                if (targetElement) {
-                    targetElement.classList.add('active-ayah');
+                const target = contentDiv.querySelector(`[data-verse-key="${verseKey}"]`);
+                if (target) {
+                    target.classList.add('active-ayah');
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             }
         }
