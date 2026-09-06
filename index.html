@@ -3,72 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>المصحف التفاعلي المتجهي</title>
+    <title>المصحف التفاعلي الشريف</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;800&family=Amiri:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Tajawal:wght@500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
+            --gold-primary: #bfa15f;
+            --gold-secondary: #8c6d2d;
+            --gold-light: #ebd99f;
+            --page-bg: #fcfaf2; /* لون ورق المصحف العاجي الفاخر */
             --primary-blue: #1d6f93;
-            --highlight-color: #1a5fb4; /* لون تحديد خط الآية التفاعلي */
-            --page-bg: #fffdf9;
-            --primary-dark: #153448;
-            --gold-accent: #c2a661;
+            --highlight-color: #1565c0; /* تلوين خط الآية بالأزرق الملكي */
+            --dark-ink: #111111;
         }
 
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: #121212;
+            background-color: #0d0d0d;
             font-family: 'Tajawal', sans-serif;
             display: flex; justify-content: center; align-items: center;
             overflow: hidden;
         }
 
-        /* حاوية المصحف بنسبة أبعاد الـ SVG الدقيقة (382.68 / 547.09) */
-        .mushaf-container {
+        /* حاوية المصحف الكبرى بنسب صفحة المصحف الرسمية */
+        .mushaf-book-page {
             position: relative;
-            height: 98vh;
+            height: 97vh;
             aspect-ratio: 382.68 / 547.09;
             max-width: 96vw;
             background: var(--page-bg);
-            box-shadow: 0 0 40px rgba(0,0,0,0.85);
-            border-radius: 8px;
+            box-shadow: 0 10px 45px rgba(0,0,0,0.85), inset 0 0 80px rgba(191, 161, 95, 0.08);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            padding: 8px 12px;
+            overflow: hidden;
+        }
+
+        /* الإطار الإسلامي المزدوج والمذهب */
+        .mushaf-outer-border {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border: 3.5px solid var(--gold-primary);
+            border-radius: 2px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            padding: 4px;
+        }
+
+        .mushaf-inner-border {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border: 1.5px solid var(--gold-secondary);
+            outline: 1px dashed var(--gold-light);
+            outline-offset: -4px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            padding: 4px 6px;
+        }
+
+        /* زوايا الزخرفة الإسلامية المذهبة */
+        .corner-ornament {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            pointer-events: none;
+            z-index: 5;
+            fill: var(--gold-primary);
+        }
+        .corner-tl { top: -2px; left: -2px; }
+        .corner-tr { top: -2px; right: -2px; transform: scaleX(-1); }
+        .corner-bl { bottom: -2px; left: -2px; transform: scaleY(-1); }
+        .corner-br { bottom: -2px; right: -2px; transform: scale(-1, -1); }
+
+        /* ترويسة الصفحة (السورة والجزء) داخل شريط مذهب */
+        .page-header-ribbon {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1.5px solid var(--gold-primary);
+            padding: 1px 6px 3px 6px;
+            font-family: 'Amiri', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2b220e;
+            background: linear-gradient(180deg, rgba(235, 217, 159, 0.25) 0%, rgba(252, 250, 242, 0) 100%);
+        }
+
+        .header-emblem {
+            border: 1px solid var(--gold-secondary);
+            border-radius: 12px;
+            padding: 0 12px;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        /* مساحة الـ SVG المتجهية الحرة */
+        .svg-reading-area {
+            flex-grow: 1;
+            width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            position: relative;
         }
 
-        /* عرض ملف الـ SVG التفاعلي بكامل الحاوية */
-        #svgWrapper {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #svgWrapper svg {
+        .svg-reading-area svg {
             width: 100%;
             height: 100%;
             display: block;
         }
 
-        /* تفاعل عناصر الآيات داخل الـ SVG */
-        #svgWrapper [data-surah][data-aya] {
+        /* تفاعل الآيات */
+        .svg-reading-area [data-surah][data-aya] {
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* تظليل الآية النشطة بتغيير لون الحبر فورياً بدقة متناهية */
-        #svgWrapper .active-ayah path,
-        #svgWrapper path.active-ayah {
+        /* تظليل الخط بالنقر */
+        .svg-reading-area .active-ayah path,
+        .svg-reading-area path.active-ayah {
             fill: var(--highlight-color) !important;
+            filter: drop-shadow(0 0 1px rgba(21, 101, 192, 0.4));
             transition: fill 0.2s ease;
         }
 
-        /* أزرار التقليب الشفافة */
+        /* أسفل الصفحة (الميدالية المذهبة لرقم الصفحة) */
+        .page-footer-ribbon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-top: 1.5px solid var(--gold-primary);
+            padding-top: 3px;
+        }
+
+        .page-number-cartouche {
+            font-family: 'Amiri', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--gold-secondary);
+            border: 1px solid var(--gold-primary);
+            background: #fff;
+            padding: 0 18px;
+            border-radius: 10px;
+        }
+
+        /* مناطق التقليب بالنقر على الأطراف */
         .turn-zone {
             position: absolute;
             top: 0; bottom: 0; width: 18%;
@@ -77,7 +165,7 @@
         .turn-next { left: 0; }
         .turn-prev { right: 0; }
 
-        /* شريط التحكم السفلي بالآية */
+        /* شريط الإجراءات العائم بالأسفل للآية */
         .action-bar {
             position: fixed;
             bottom: -100px;
@@ -87,7 +175,7 @@
             max-width: 480px;
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(29, 111, 147, 0.3);
+            border: 1.5px solid var(--gold-primary);
             border-radius: 18px;
             padding: 10px 14px;
             box-shadow: 0 10px 35px rgba(0,0,0,0.35);
@@ -99,12 +187,11 @@
             box-sizing: border-box;
         }
         .action-bar.show { bottom: 20px; }
-
-        .action-bar-info { font-weight: 800; color: var(--primary-dark); font-size: 0.95rem; }
+        .action-bar-info { font-weight: 800; color: #153448; font-size: 0.95rem; }
         .action-buttons { display: flex; gap: 6px; }
 
         .act-btn {
-            border: none; background: #f0f4f7; color: var(--primary-dark);
+            border: none; background: #f4f1ea; color: #153448;
             padding: 8px 12px; border-radius: 10px; font-family: 'Tajawal'; font-weight: 700;
             cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 0.88rem;
             transition: 0.2s;
@@ -112,11 +199,11 @@
         .act-btn:hover { background: var(--primary-blue); color: #fff; }
         .act-btn.close-btn { background: #fee; color: #c0392b; }
 
-        /* زر الإعدادات العائم */
+        /* زر الإعدادات */
         .fab-btn {
             position: fixed; bottom: 20px; right: 20px;
             width: 52px; height: 52px; border-radius: 50%;
-            background: var(--gold-accent); color: #fff; border: none;
+            background: var(--gold-primary); color: #fff; border: none;
             font-size: 1.3rem; cursor: pointer; z-index: 999;
             box-shadow: 0 4px 15px rgba(0,0,0,0.35);
         }
@@ -126,6 +213,7 @@
             background: #fff; border-radius: 16px; padding: 18px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.3); z-index: 998;
             display: none; flex-direction: column; gap: 10px;
+            border: 1px solid var(--gold-light);
         }
         .settings-box.show { display: flex; }
         .settings-box input, .settings-box select {
@@ -138,14 +226,14 @@
             width: 88%; max-width: 480px; max-height: 65vh; background: #fff;
             border-radius: 16px; padding: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.5);
             z-index: 2000; display: none; flex-direction: column;
-            border: 2px solid var(--gold-accent);
+            border: 2px solid var(--gold-primary);
         }
         .tafsir-modal.show { display: flex; }
         .tafsir-body { overflow-y: auto; line-height: 1.8; font-size: 1.1rem; color: #333; margin-top: 10px; }
 
         .loader {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 2.2rem; color: var(--gold-accent); z-index: 10;
+            font-size: 2.2rem; color: var(--gold-primary); z-index: 10;
         }
 
         .toast-notify {
@@ -162,18 +250,39 @@
 
 <div id="toast" class="toast-notify"></div>
 
-<div class="mushaf-container">
-    <div id="loader" class="loader"><i class="fa-solid fa-spinner fa-spin"></i></div>
-    
-    <!-- الحاوية التي يُحقن داخلها كود الـ SVG مباشرة -->
-    <div id="svgWrapper"></div>
+<div class="mushaf-book-page">
+    <div class="mushaf-outer-border">
+        <!-- زوايا الزخرفة الإسلامية -->
+        <svg class="corner-ornament corner-tl" viewBox="0 0 24 24"><path d="M0,0 L24,0 C12,0 0,12 0,24 Z M4,4 L16,4 C8,4 4,8 4,16 Z"/></svg>
+        <svg class="corner-ornament corner-tr" viewBox="0 0 24 24"><path d="M0,0 L24,0 C12,0 0,12 0,24 Z M4,4 L16,4 C8,4 4,8 4,16 Z"/></svg>
+        <svg class="corner-ornament corner-bl" viewBox="0 0 24 24"><path d="M0,0 L24,0 C12,0 0,12 0,24 Z M4,4 L16,4 C8,4 4,8 4,16 Z"/></svg>
+        <svg class="corner-ornament corner-br" viewBox="0 0 24 24"><path d="M0,0 L24,0 C12,0 0,12 0,24 Z M4,4 L16,4 C8,4 4,8 4,16 Z"/></svg>
 
-    <!-- مناطق التقليب بالنقر على الأطراف -->
+        <div class="mushaf-inner-border">
+            <!-- ترويسة السورة والجزء -->
+            <div class="page-header-ribbon">
+                <span class="header-emblem" id="surahBadge">سُورَةُ الفَاتِحَةِ</span>
+                <span class="header-emblem" id="juzBadge">الجُزْءُ الأَوَّلُ</span>
+            </div>
+
+            <!-- مساحة النص القرآني المتجهي -->
+            <div class="svg-reading-area" id="svgWrapper">
+                <div id="loader" class="loader"><i class="fa-solid fa-spinner fa-spin"></i></div>
+            </div>
+
+            <!-- فوتر رقم الصفحة -->
+            <div class="page-footer-ribbon">
+                <span class="page-number-cartouche" id="pageNumberBadge">﴿ ١ ﴾</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- مناطق التقليب -->
     <div class="turn-zone turn-next" onclick="changePage(1)" title="الصفحة التالية"></div>
     <div class="turn-zone turn-prev" onclick="changePage(-1)" title="الصفحة السابقة"></div>
 </div>
 
-<!-- شريط التحكم بالآية المحددة -->
+<!-- شريط التحكم السفلي بالآية -->
 <div id="actionBar" class="action-bar">
     <div id="actionInfo" class="action-bar-info">سورة الفاتحة - آية 1</div>
     <div class="action-buttons">
@@ -184,17 +293,17 @@
     </div>
 </div>
 
-<!-- زر وقائمة الإعدادات -->
+<!-- زر الإعدادات والقائمة -->
 <button class="fab-btn" onclick="toggleSettings()"><i class="fa-solid fa-sliders"></i></button>
 
 <div id="settingsBox" class="settings-box">
-    <label style="font-weight: 800; color: var(--primary-dark);">انتقال لصفحة (1 - 604):</label>
+    <label style="font-weight: 800; color: #153448;">انتقال لصفحة (1 - 604):</label>
     <div style="display: flex; gap: 8px;">
         <input type="number" id="pageJumpInput" min="1" max="604" value="1">
         <button class="act-btn" style="background: var(--primary-blue); color: #fff;" onclick="jumpToPage()">انتقال</button>
     </div>
     
-    <label style="font-weight: 800; color: var(--primary-dark); margin-top: 6px;">القارئ:</label>
+    <label style="font-weight: 800; color: #153448; margin-top: 6px;">القارئ:</label>
     <select id="reciterSelect">
         <option value="ar.alafasy">مشاري العفاسي</option>
         <option value="ar.husary">محمود خليل الحصري</option>
@@ -207,7 +316,7 @@
 <!-- نافذة التفسير -->
 <div id="tafsirModal" class="tafsir-modal">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 8px;">
-        <h3 id="tafsirTitle" style="margin: 0; color: var(--primary-dark); font-size: 1.15rem;">التفسير الميسر</h3>
+        <h3 id="tafsirTitle" style="margin: 0; color: #153448; font-size: 1.15rem;">التفسير الميسر</h3>
         <button onclick="closeTafsir()" style="border: none; background: none; font-size: 1.4rem; color: #c0392b; cursor: pointer;">&times;</button>
     </div>
     <div id="tafsirBody" class="tafsir-body"></div>
@@ -215,25 +324,34 @@
 
 <script>
     let currentPage = 1;
-    let selectedAyah = null; // { surah: 1, ayah: 1 }
+    let selectedAyah = null;
     let audioPlayer = new Audio();
 
     function toArabicDigits(num) {
         return String(num).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
     }
 
+    // أسماء السور مرتبة حسب أرقامها لتحديث الترويسة
+    const surahNames = [
+        "", "الفَاتِحَةِ", "البَقَرَةِ", "آلِ عِمْرَان", "النِّسَاءِ", "المَائِدَةِ", "الأَنْعَامِ", "الأَعْرَافِ", "الأَنْفَالِ", "التَّوْبَةِ",
+        "يُونُس", "هُود", "يُوسُف", "الرَّعْد", "إِبْرَاهِيم", "الحِجْر", "النَّحْل", "الإِسْرَاءِ", "الكَهْف", "مَرْيَم",
+        "طه", "الأَنْبِيَاءِ", "الحَجّ", "المُؤْمِنُون", "النُّور", "الفُرْقَان", "الشُّعَرَاءِ", "النَّمْل", "القَصَص", "العَنْكَبُوت"
+    ];
+
     window.onload = () => loadPage(currentPage);
 
     async function loadPage(pageNum) {
-        document.getElementById('loader').style.display = 'block';
+        const loader = document.getElementById('loader');
+        if (loader) loader.style.display = 'block';
         deselectAyah();
         stopAudio();
         document.getElementById('pageJumpInput').value = pageNum;
+        document.getElementById('pageNumberBadge').innerText = `﴿ ${toArabicDigits(pageNum)} ﴾`;
 
         const p3 = String(pageNum).padStart(3, '0');
         const wrapper = document.getElementById('svgWrapper');
 
-        // مسارات متوقعة للملف داخل المستودع
+        // جلب ملف الـ SVG التفاعلي محلياً
         const candidateUrls = [
             `svg/${p3}.svg`,
             `${p3}.svg`,
@@ -251,12 +369,11 @@
                     wrapper.innerHTML = svgText;
                     attachSvgEvents();
                     loaded = true;
+                    updatePageMeta(pageNum);
                     showToast(`صفحة ${pageNum}`);
                     break;
                 }
-            } catch (e) {
-                // المحاولة مع الرابط التالي
-            }
+            } catch (e) {}
         }
 
         if (!loaded) {
@@ -264,14 +381,22 @@
                 يرجى التأكد من رفع ملف <b>${p3}.svg</b> إلى مستودع المشروع على GitHub.
             </div>`;
         }
-
-        document.getElementById('loader').style.display = 'none';
     }
 
-    // تفعيل أحداث النقر والتظليل التلقائي على عناصر الـ SVG
+    function updatePageMeta(pageNum) {
+        // تحديث اسم السورة ديناميكياً
+        const wrapper = document.getElementById('svgWrapper');
+        const firstElemWithSurah = wrapper.querySelector('[data-surah]');
+        if (firstElemWithSurah) {
+            const sNum = parseInt(firstElemWithSurah.getAttribute('data-surah'), 10);
+            if (surahNames[sNum]) {
+                document.getElementById('surahBadge').innerText = `سُورَةُ ${surahNames[sNum]}`;
+            }
+        }
+    }
+
     function attachSvgEvents() {
         const wrapper = document.getElementById('svgWrapper');
-        
         wrapper.querySelectorAll('[data-surah][data-aya]').forEach(el => {
             el.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -285,21 +410,19 @@
     function selectAyah(surahNum, ayahNum) {
         selectedAyah = { surah: surahNum, ayah: ayahNum };
 
-        // إزالة التظليل السابق
         const wrapper = document.getElementById('svgWrapper');
         wrapper.querySelectorAll('.active-ayah').forEach(el => el.classList.remove('active-ayah'));
 
-        // تظليل كافة الكلمات والرموز التابعة للآية في هذه الصفحة
         const s3 = String(surahNum).padStart(3, '0');
         const a3 = String(ayahNum).padStart(3, '0');
 
         const targets = wrapper.querySelectorAll(
             `[data-surah="${s3}"][data-aya="${a3}"], [data-surah="${surahNum}"][data-aya="${ayahNum}"]`
         );
-        
         targets.forEach(el => el.classList.add('active-ayah'));
 
-        document.getElementById('actionInfo').innerText = `سورة ${toArabicDigits(surahNum)} - آية ${toArabicDigits(ayahNum)}`;
+        const sName = surahNames[surahNum] || surahNum;
+        document.getElementById('actionInfo').innerText = `سورة ${sName} - آية ${toArabicDigits(ayahNum)}`;
         document.getElementById('actionBar').classList.add('show');
         document.getElementById('settingsBox').classList.remove('show');
     }
@@ -307,7 +430,9 @@
     function deselectAyah() {
         selectedAyah = null;
         const wrapper = document.getElementById('svgWrapper');
-        wrapper.querySelectorAll('.active-ayah').forEach(el => el.classList.remove('active-ayah'));
+        if (wrapper) {
+            wrapper.querySelectorAll('.active-ayah').forEach(el => el.classList.remove('active-ayah'));
+        }
         document.getElementById('actionBar').classList.remove('show');
     }
 
@@ -397,7 +522,7 @@
     }
 
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.mushaf-container') && !e.target.closest('#actionBar') && !e.target.closest('#settingsBox') && !e.target.closest('.fab-btn')) {
+        if (!e.target.closest('.mushaf-book-page') && !e.target.closest('#actionBar') && !e.target.closest('#settingsBox') && !e.target.closest('.fab-btn')) {
             deselectAyah();
             document.getElementById('settingsBox').classList.remove('show');
         }
