@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مصحف المدينة - التقنية الاحترافية (QCF)</title>
+    
+    <!-- استدعاء Tailwind CSS للتنسيق -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
@@ -11,22 +13,27 @@
             background-color: #262626;
         }
         
-        /* تحميل الخط من رابط الـ CDN المفتوح لتجاوز حظر المتصفح */
+        /* 
+           الحل السحري هنا: 
+           استخدمنا وسيط (corsproxy.io) لجلب الخط إجبارياً من سيرفرات Quran.com 
+           لتجاوز حظر المتصفح (CORS) دون الحاجة لرفع الخط يدوياً.
+        */
         @font-face {
             font-family: 'p2';
-            src: url('https://cdn.qurancdn.com/custom-fonts/quran/hafs/v1/woff2/p2.woff2') format('woff2');
+            src: url('https://corsproxy.io/?https://quran.com/fonts/quran/hafs/v1/woff2/p2.woff2') format('woff2');
             font-display: swap;
         }
 
+        /* تنسيق الخط والصفحة */
         .quran-page-2 {
             font-family: 'p2', sans-serif;
-            font-size: 2.5rem; 
+            font-size: 2.5rem; /* حجم الخط الذي يحدد حجم الصفحة */
             line-height: 1.7;
             color: #1a1a1a;
         }
 
         .mushaf-paper {
-            background-color: #FDF7E2;
+            background-color: #FDF7E2; /* لون ورق المصحف */
             border: 12px solid #D4C3A3;
             min-height: 70vh;
             display: flex;
@@ -34,6 +41,7 @@
             justify-content: center;
         }
 
+        /* تأثيرات الكلمات */
         .word {
             cursor: pointer;
             transition: all 0.2s;
@@ -48,31 +56,36 @@
 </head>
 <body class="min-h-screen flex items-center justify-center py-10 px-4">
 
+    <!-- إطار المصحف -->
     <div class="mushaf-paper p-4 md:p-8 w-full max-w-2xl shadow-2xl rounded-sm">
         <div id="quran-container" class="quran-page-2">
-            <div class="text-xl font-sans text-center text-amber-700">جاري تحميل الصفحة الاحترافية والخط...</div>
+            <div class="text-xl font-sans text-center text-amber-700">جاري تحميل الخط الاحترافي والصفحة...</div>
         </div>
     </div>
 
+    <!-- كود الجافاسكربت لجلب البيانات -->
     <script>
+        // جلب البيانات للصفحة 2 باستخدام الحقل code_v1
         fetch('https://api.quran.com/api/v4/verses/by_page/2?words=true&word_fields=code_v1,line_number')
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById('quran-container');
-                container.innerHTML = ''; 
+                container.innerHTML = ''; // تفريغ رسالة التحميل
 
                 let currentLine = 1;
                 let lineDiv = document.createElement('div');
                 
+                // تنسيق السطر الافتراضي (توزيع الكلمات)
                 lineDiv.className = "flex justify-between items-center w-full";
                 
                 data.verses.forEach(verse => {
                     verse.words.forEach(word => {
+                        // إذا بدأنا في سطر جديد
                         if (word.line_number !== currentLine) {
                             container.appendChild(lineDiv);
                             lineDiv = document.createElement('div');
                             
-                            // توسيط السطر الأخير أو الأول إذا كانت الكلمات قليلة
+                            // توسيط السطر الأخير أو الأول في السورة لكي لا تتشتت الكلمات
                             if (currentLine === 15 || currentLine === 1) {
                                 lineDiv.className = "flex justify-center gap-4 w-full";
                             } else {
@@ -82,6 +95,7 @@
                             currentLine = word.line_number;
                         }
 
+                        // إنشاء الكلمة بالرمز المشفر
                         const wordSpan = document.createElement('span');
                         wordSpan.className = 'word';
                         wordSpan.innerHTML = word.code_v1; 
@@ -90,9 +104,14 @@
                     });
                 });
                 
+                // إضافة السطر الأخير للصفحة
                 container.appendChild(lineDiv);
             })
-            .catch(err => console.error("Error:", err));
+            .catch(err => {
+                console.error("Error:", err);
+                document.getElementById('quran-container').innerHTML = 
+                    '<div class="text-red-500 font-sans text-center">حدث خطأ في جلب البيانات، يرجى تحديث الصفحة.</div>';
+            });
     </script>
 </body>
 </html>
