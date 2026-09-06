@@ -11,78 +11,88 @@
             background-color: #262626;
         }
         
-        /* 1. نقوم بتحميل خط مخصص للصفحة رقم 2 فقط من سيرفرات Quran.com */
+        /* تحميل الخط من رابط الـ CDN المفتوح لتجاوز حظر المتصفح */
         @font-face {
             font-family: 'p2';
-            src: url('https://quran.com/fonts/quran/hafs/v1/woff2/p2.woff2') format('woff2');
+            src: url('https://cdn.qurancdn.com/custom-fonts/quran/hafs/v1/woff2/p2.woff2') format('woff2');
             font-display: swap;
         }
 
-        /* 2. نعطي حاوية المصحف هذا الخط */
         .quran-page-2 {
             font-family: 'p2', sans-serif;
-            font-size: 2.5rem; /* حجم الخط يحدد حجم الصفحة */
-            text-align: center;
-            line-height: 1.6;
+            font-size: 2.5rem; 
+            line-height: 1.7;
             color: #1a1a1a;
         }
 
         .mushaf-paper {
             background-color: #FDF7E2;
             border: 12px solid #D4C3A3;
+            min-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        /* تظليل الكلمة عند مرور الماوس (لإثبات أنها نصوص تفاعلية وليست صورة) */
+        .word {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
         .word:hover {
             color: #8B0000;
             background-color: rgba(212, 175, 55, 0.3);
             border-radius: 4px;
-            cursor: pointer;
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center py-10">
+<body class="min-h-screen flex items-center justify-center py-10 px-4">
 
-    <div class="mushaf-paper p-8 w-full max-w-2xl shadow-2xl rounded-sm">
-        <!-- الحاوية التي ستعرض الخطوط المشفرة -->
+    <div class="mushaf-paper p-4 md:p-8 w-full max-w-2xl shadow-2xl rounded-sm">
         <div id="quran-container" class="quran-page-2">
-            جاري تحميل الصفحة الاحترافية...
+            <div class="text-xl font-sans text-center text-amber-700">جاري تحميل الصفحة الاحترافية والخط...</div>
         </div>
     </div>
 
     <script>
-        // جلب البيانات للصفحة 2 باستخدام الحقل code_v1
         fetch('https://api.quran.com/api/v4/verses/by_page/2?words=true&word_fields=code_v1,line_number')
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById('quran-container');
-                container.innerHTML = ''; // تفريغ النص المؤقت
+                container.innerHTML = ''; 
 
                 let currentLine = 1;
                 let lineDiv = document.createElement('div');
                 
+                lineDiv.className = "flex justify-between items-center w-full";
+                
                 data.verses.forEach(verse => {
                     verse.words.forEach(word => {
-                        // إذا تغير رقم السطر، نضيف السطر القديم للصفحة ونبدأ سطراً جديداً
                         if (word.line_number !== currentLine) {
                             container.appendChild(lineDiv);
                             lineDiv = document.createElement('div');
+                            
+                            // توسيط السطر الأخير أو الأول إذا كانت الكلمات قليلة
+                            if (currentLine === 15 || currentLine === 1) {
+                                lineDiv.className = "flex justify-center gap-4 w-full";
+                            } else {
+                                lineDiv.className = "flex justify-between items-center w-full";
+                            }
+                            
                             currentLine = word.line_number;
                         }
 
-                        // إنشاء عنصر (span) لكل كلمة باستخدام كود V1
                         const wordSpan = document.createElement('span');
                         wordSpan.className = 'word';
-                        wordSpan.innerHTML = word.code_v1; // هنا نضع الرمز المشفر
+                        wordSpan.innerHTML = word.code_v1; 
                         
                         lineDiv.appendChild(wordSpan);
                     });
                 });
                 
-                // إضافة السطر الأخير
                 container.appendChild(lineDiv);
             })
-            .catch(err => console.error("Error fetching data:", err));
+            .catch(err => console.error("Error:", err));
     </script>
 </body>
 </html>
