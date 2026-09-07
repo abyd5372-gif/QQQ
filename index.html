@@ -37,6 +37,7 @@
             border: 1px solid rgba(255, 255, 255, 0.5);
             width: 90%;
             max-width: 700px;
+            z-index: 10;
         }
 
         button {
@@ -79,28 +80,35 @@
             font-weight: bold;
         }
 
-        /* الحاوية التي ستجمع ملف الـ PNG والخلفية البيضاء */
+        /* الحاوية الجامعة: يجب أن تكون Relative لكي يعمل التطابق */
         .quran-page-container {
             width: 100%;
             max-width: 650px;
-            background-color: #ffffff; /* لون ورقة المصحف */
-            background-size: 100% 100%; /* عشان الـ PNG يغطي المساحة كاملة */
-            background-repeat: no-repeat;
-            background-position: center;
+            position: relative; /* ضروري لتكديس الطبقات المطلقة */
             border-radius: 10px;
             box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-            position: relative;
             overflow: hidden;
-            /* سيتم إضافة الـ PNG كخلفية من خلال الجافاسكربت */
+            display: block;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
         }
 
-        /* ملف الـ SVG الذي سيكون فوق الـ PNG */
-        object {
+        /* الطبقة السفلية: صورة الـ PNG التي تحدد الأبعاد */
+        #bgImg {
             width: 100%;
             height: auto;
-            position: relative;
-            z-index: 2; /* لضمان أن النص التفاعلي فوق الخلفية */
             display: block;
+        }
+
+        /* الطبقة العلوية: الـ SVG المفرغ والذي يركب فوق الصورة */
+        object {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2; /* لضمان أن التفاعل والنقر يكون للـ SVG */
         }
     </style>
 </head>
@@ -120,8 +128,11 @@
         <button id="stopBtn" style="display: none; background-color: #e74c3c;">إيقاف ⏹️</button>
     </div>
 
+    <!-- حاوية الصفحة -->
     <div class="quran-page-container" id="pageContainer">
-        <!-- يتم تحميل ملف الـ SVG التفاعلي هنا -->
+        <!-- الصورة الأساسية (الخلفية) -->
+        <img id="bgImg" src="1.png" alt="خلفية الصفحة">
+        <!-- طبقة التفاعل وتظليل الآيات (SVG) -->
         <object id="quranSvg" data="001.svg" type="image/svg+xml"></object>
     </div>
 
@@ -130,14 +141,15 @@
         let ayahsData = [];
         let currentAyahIndex = 0;
         let audioPlayer = new Audio();
-        let playMode = 'stopped';
+        let playMode = 'stopped'; // 'sequence', 'repeat', 'stopped'
 
         const pageInput = document.getElementById('pageInput');
         const quranSvg = document.getElementById('quranSvg');
-        const pageContainer = document.getElementById('pageContainer');
+        const bgImg = document.getElementById('bgImg');
         const playSequenceBtn = document.getElementById('playSequenceBtn');
         const stopBtn = document.getElementById('stopBtn');
 
+        // جلب البيانات الصوتية للصفحة الحالية
         async function fetchPageData(page) {
             try {
                 playSequenceBtn.disabled = true;
@@ -157,6 +169,7 @@
             }
         }
 
+        // تحديث عرض الصفحة (تحديث الـ PNG والـ SVG معاً)
         function updatePageDisplay(pageNumber) {
             currentPage = parseInt(pageNumber);
             if (currentPage < 1) currentPage = 1;
@@ -164,18 +177,19 @@
             
             pageInput.value = currentPage;
             
-            // 1. تجهيز اسم ملف الـ SVG (مثال: 001.svg)
+            // تحديث ملف الـ SVG (مثال: 001.svg)
             const svgFormatted = currentPage.toString().padStart(3, '0') + '.svg';
             quranSvg.data = svgFormatted;
             
-            // 2. تجهيز اسم ملف الـ PNG بناءً على الصورة اللي لقيتها (مثال: 1.png بدون أصفار)
+            // تحديث ملف الـ PNG (مثال: 1.png)
             const pngFormatted = currentPage + '.png';
-            pageContainer.style.backgroundImage = `url('${pngFormatted}')`;
+            bgImg.src = pngFormatted;
             
             stopAudio();
             fetchPageData(currentPage);
         }
 
+        // تشغيل صوت الآية الحالية
         function playCurrentAyah() {
             if (currentAyahIndex >= ayahsData.length) {
                 stopAudio();
@@ -210,6 +224,7 @@
             removeHighlightFromSvg();
         }
 
+        // دالة التظليل داخل الـ SVG
         function highlightAyahInSvg(ayahNum, surahNum) {
             try {
                 const svgDoc = quranSvg.contentDocument;
@@ -233,10 +248,11 @@
                     }
                 });
             } catch (e) {
-                // خطأ طبيعي إذا لم يكن مرفوعاً على سيرفر
+                // سيتم تجاهل الخطأ في حال لم يكن الكود مرفوعاً على سيرفر لتفادي إزعاج المستخدم
             }
         }
 
+        // إزالة التظليل
         function removeHighlightFromSvg(svgDoc = quranSvg.contentDocument) {
             if (!svgDoc) return;
             const activeWords = svgDoc.querySelectorAll('.active-ayah');
@@ -249,6 +265,7 @@
             });
         }
 
+        // إضافة التفاعلية (النقر والتمرير) بمجرد تحميل ملف الـ SVG
         quranSvg.addEventListener('load', () => {
             try {
                 const svgDoc = quranSvg.contentDocument;
@@ -277,8 +294,11 @@
                     }
                 });
             } catch (error) {
+                console.warn("لتفعيل التظليل، قم برفع المشروع على GitHub Pages أو استخدم Live Server.");
             }
         });
+
+        // ------------------ أزرار التحكم ------------------
 
         playSequenceBtn.addEventListener('click', () => {
             if (ayahsData.length > 0) {
@@ -306,6 +326,7 @@
             if (e.key === 'Enter') updatePageDisplay(pageInput.value);
         });
 
+        // تشغيل الصفحة الأولى عند فتح الموقع
         updatePageDisplay(1);
     </script>
 </body>
