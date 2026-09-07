@@ -3,272 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مصحف تفاعلي - تتبع وتلاوة العفاسي</title>
+    <title>المصحف الشريف - تلاوة العفاسي</title>
     <style>
-        * {
-            box-sizing: border-box;
+        :root {
+            --primary: #2c3e50;
+            --bg: #f8f9fa;
+            --glass-bg: rgba(255, 255, 255, 0.85);
         }
+        
         body {
-            background-color: #eef2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 15px;
         }
-        
-        .controls {
-            background: #ffffff;
-            padding: 12px 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
+
+        /* تصميم زجاجي أنيق لشريط التحكم */
+        .controls-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             display: flex;
-            gap: 12px;
+            gap: 20px;
             align-items: center;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
             z-index: 10;
         }
 
         button {
-            padding: 8px 18px;
-            font-size: 15px;
-            cursor: pointer;
+            background-color: var(--primary);
+            color: white;
             border: none;
+            padding: 10px 20px;
             border-radius: 8px;
-            background-color: #1e7e34;
-            color: #ffffff;
-            font-weight: 600;
-            transition: opacity 0.2s, transform 0.1s;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        button:active { transform: scale(0.97); }
-        button:hover { opacity: 0.9; }
-        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        button:hover {
+            background-color: #1a252f;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
 
         .page-info {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
-            color: #2c3e50;
-            min-width: 90px;
+            color: var(--primary);
+            min-width: 100px;
             text-align: center;
         }
 
-        /* تصميم حاوية المصحف الجديدة */
-        .quran-container {
+        /* حاوية صفحة المصحف */
+        .quran-page-container {
             width: 100%;
             max-width: 600px;
-            aspect-ratio: 7 / 10; /* للحفاظ على أبعاد صفحة المصحف الطبيعية */
-            
-            /* لون الخلفية الأخضر الفاتح */
-            background-color: #d2ebd2; 
-            
-            /* إذا قمت بتنزيل صورة الإطار، قم بإزالة علامتي التعليق /* */ من السطر التالي */
-            /* background-image: url('frame.png'); */
-            background-size: 100% 100%;
-            background-position: center;
-            background-repeat: no-repeat;
-            
-            border-radius: 10px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            
-            /* هوامش داخلية لإبعاد النص القرآني عن الحواف والإطار الزخرفي */
-            padding: 10% 8%; 
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            overflow: hidden;
+            padding: 10px;
         }
 
+        /* نستخدم object بدلاً من img للتمكن من الوصول لعناصر الـ SVG لاحقاً */
         object {
             width: 100%;
-            height: 100%;
-            background: transparent; /* لجعل الـ SVG شفافاً ويظهر اللون الأخضر خلفه */
-            z-index: 2;
+            height: auto;
+            pointer-events: none; /* لمنع التفاعل العشوائي مع محتوى الـ SVG */
         }
     </style>
 </head>
 <body>
 
-    <div class="controls">
-        <button onclick="nextPage()">الصفحة التالية &lt;</button>
-        <span class="page-info">صفحة: <span id="page-num">1</span></span>
-        <button onclick="prevPage()">&gt; الصفحة السابقة</button>
-        <button id="play-btn" onclick="toggleAudio()" style="background-color: #0b5ed7;">▶ تشغيل الصفحة</button>
+    <div class="controls-container">
+        <button id="nextPage">الصفحة التالية</button>
+        <div class="page-info">صفحة <span id="pageNum">1</span></div>
+        <button id="prevPage">الصفحة السابقة</button>
+        <button id="playAudio">تشغيل الصوت 🎧</button>
     </div>
 
-    <div class="quran-container">
-        <!-- يتم تحميل ملف الـ SVG برمجياً هنا -->
-        <object id="quran-svg" type="image/svg+xml" data=""></object>
+    <div class="quran-page-container">
+        <object id="quranSvg" data="001.svg" type="image/svg+xml"></object>
     </div>
 
     <script>
-        let currentPage = 1; 
-        const totalPages = 604;
+        let currentPage = 1;
         let ayahsData = [];
         let currentAyahIndex = 0;
         let audioPlayer = new Audio();
         let isPlaying = false;
 
-        const svgObject = document.getElementById('quran-svg');
-        const pageNumDisplay = document.getElementById('page-num');
-        const playBtn = document.getElementById('play-btn');
+        const pageNumDisplay = document.getElementById('pageNum');
+        const quranSvg = document.getElementById('quranSvg');
+        const playBtn = document.getElementById('playAudio');
 
-        // تحويل الرقم إلى صيغة 3 خانات (مثال: 1 تصبح 001) لتطابق أسماء الملفات
-        function formatPageNumber(page) {
-            return String(page).padStart(3, '0');
+        // دالة لتنسيق رقم الصفحة (مثال: 001, 045, 604)
+        function formatPageNumber(num) {
+            return num.toString().padStart(3, '0');
         }
 
-        async function loadPage(page) {
-            currentPage = page;
-            pageNumDisplay.innerText = page;
+        // تحديث عرض الصفحة
+        function updatePageDisplay() {
+            const formattedNum = formatPageNumber(currentPage);
+            quranSvg.data = `${formattedNum}.svg`; // يقوم بجلب الملف من نفس مسار الاستضافة
+            pageNumDisplay.textContent = currentPage;
+            
+            // إيقاف الصوت عند تغيير الصفحة وتحضير بيانات الصفحة الجديدة
             stopAudio();
+            fetchPageData(currentPage);
+        }
 
-            // تحميل ملف الـ SVG بالاسم الثلاثي (مثل 001.svg)
-            const fileName = `${formatPageNumber(page)}.svg`;
-            svgObject.data = fileName;
-
+        // جلب بيانات الآيات والصوت للصفحة الحالية من API
+        async function fetchPageData(page) {
             try {
-                // جلب بيانات التلاوة الخاصة بالصفحة من الـ API
+                playBtn.disabled = true;
+                playBtn.textContent = 'جاري التحميل...';
+                
+                // جلب بيانات الصفحة بصوت العفاسي
                 const response = await fetch(`https://api.alquran.cloud/v1/page/${page}/ar.alafasy`);
                 const data = await response.json();
                 
-                if(data.code === 200) {
+                if (data.code === 200) {
                     ayahsData = data.data.ayahs;
-                    console.log(`تم تحميل بيانات الصفحة ${page} بنجاح`);
+                    playBtn.disabled = false;
+                    playBtn.textContent = 'تشغيل الصوت 🎧';
                 }
             } catch (error) {
-                console.error("خطأ في جلب بيانات التلاوة:", error);
+                console.error("حدث خطأ في جلب البيانات:", error);
+                playBtn.textContent = 'خطأ في التحميل';
             }
         }
 
-        function nextPage() {
-            if (currentPage < totalPages) loadPage(currentPage + 1);
-        }
-
-        function prevPage() {
-            if (currentPage > 1) loadPage(currentPage - 1);
-        }
-
-        function toggleAudio() {
-            if (isPlaying) {
+        // تشغيل صوت الآيات بالترتيب
+        function playAyahSequence() {
+            if (currentAyahIndex >= ayahsData.length) {
                 stopAudio();
-            } else {
-                if (ayahsData.length > 0) {
-                    isPlaying = true;
-                    playBtn.innerText = "⏸ إيقاف";
-                    playBtn.style.backgroundColor = "#dc3545";
-                    currentAyahIndex = 0;
-                    playAyah(currentAyahIndex);
-                }
+                return;
             }
+
+            const currentAyah = ayahsData[currentAyahIndex];
+            audioPlayer.src = currentAyah.audio;
+            audioPlayer.play();
+            isPlaying = true;
+            playBtn.textContent = 'إيقاف ⏸️';
+
+            // هنا تكمن منطقية "تتبع الآيات"
+            highlightAyahInSvg(currentAyah.numberInSurah);
+
+            audioPlayer.onended = () => {
+                currentAyahIndex++;
+                playAyahSequence();
+            };
         }
 
         function stopAudio() {
             audioPlayer.pause();
             audioPlayer.currentTime = 0;
             isPlaying = false;
-            playBtn.innerText = "▶ تشغيل الصفحة";
-            playBtn.style.backgroundColor = "#0b5ed7";
-            clearHighlight();
+            currentAyahIndex = 0;
+            playBtn.textContent = 'تشغيل الصوت 🎧';
+            removeHighlightFromSvg();
         }
 
-        function playAyah(index) {
-            // إذا انتهت آيات الصفحة، ننتقل للصفحة التالية تلقائياً
-            if (index >= ayahsData.length) {
-                if (currentPage < totalPages) {
-                    loadPage(currentPage + 1).then(() => {
-                        // الانتظار قليلاً حتى يتم رسم الـ SVG الجديد قبل بدء الصوت
-                        setTimeout(() => toggleAudio(), 800);
-                    });
-                } else {
-                    stopAudio();
-                }
-                return;
-            }
-
-            const ayah = ayahsData[index];
-            audioPlayer.src = ayah.audio;
-            audioPlayer.play();
-
-            // تظليل الآية الحالية
-            highlightAyah(ayah.surah.number, ayah.numberInSurah);
-
-            // عند انتهاء تلاوة الآية، نشغل الآية التي تليها
-            audioPlayer.onended = () => {
-                currentAyahIndex++;
-                playAyah(currentAyahIndex);
-            };
-        }
-
-        function highlightAyah(surahNum, ayahNum) {
-            const svgDoc = svgObject.contentDocument;
-            if (!svgDoc) {
-                console.warn("جاري تحميل الـ SVG...");
-                return;
-            }
-
-            clearHighlight();
-
-            const sNumPad = String(surahNum).padStart(3, '0');
-            const aNumPad = String(ayahNum).padStart(3, '0');
-
-            // مصفوفة مرنة للبحث عن الـ ID الخاص بالآية بناءً على هيكلة الملفات الشائعة
-            const possibleSelectors = [
-                `[id*="ayah_${surahNum}_${ayahNum}"]`,
-                `[id*="aya_${surahNum}_${ayahNum}"]`,
-                `[id*="ayah-${surahNum}-${ayahNum}"]`,
-                `[id*="aya-${surahNum}-${ayahNum}"]`,
-                `[id*="${sNumPad}_${aNumPad}"]`,
-                `#s${surahNum}_a${ayahNum}`,
-                `#s${surahNum}a${ayahNum}`
-            ];
-
-            let ayahElement = null;
-            for (let selector of possibleSelectors) {
-                ayahElement = svgDoc.querySelector(selector);
-                if (ayahElement) break;
-            }
-
-            if (ayahElement) {
-                // تلوين الآية باللون الذهبي
-                applyColorToTree(ayahElement, "#b8860b");
+        // أزرار التحكم
+        playBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                stopAudio();
             } else {
-                console.warn(`لم يتم العثور على الآية رقم ${ayahNum} من سورة ${surahNum} في ملف الـ SVG.`);
+                if (ayahsData.length > 0) playAyahSequence();
+            }
+        });
+
+        document.getElementById('nextPage').addEventListener('click', () => {
+            if (currentPage < 604) {
+                currentPage++;
+                updatePageDisplay();
+            }
+        });
+
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                updatePageDisplay();
+            }
+        });
+
+        // -----------------------------------------------------
+        // وظائف تتبع الآيات (تتطلب تجهيزاً مسبقاً لملفات الـ SVG)
+        // -----------------------------------------------------
+        function highlightAyahInSvg(ayahNum) {
+            /* 
+               ملاحظة هامة: 
+               لكي يعمل التظليل داخل ملف الـ SVG (مثل 001.svg)، 
+               يجب أن تكون الآيات داخل الملف مجمعة في وسوم (Tags) تمتلك معرفات (IDs).
+               مثال: <g id="ayah-1"> ... مسارات الكلمات ... </g>
+               
+               إذا كانت ملفاتك مجهزة بهذه الطريقة، يمكنك تفعيل هذا الكود:
+            */
+            try {
+                const svgDoc = quranSvg.contentDocument;
+                if (!svgDoc) return;
+
+                // إزالة التظليل السابق
+                removeHighlightFromSvg(svgDoc);
+
+                // البحث عن الآية الحالية وتظليلها (بافتراض أن الـ ID هو ayah-رقم)
+                const targetAyah = svgDoc.getElementById(`ayah-${ayahNum}`);
+                if (targetAyah) {
+                    targetAyah.style.fill = '#2980b9'; // لون التظليل
+                    targetAyah.classList.add('active-ayah');
+                }
+            } catch (e) {
+                console.log("تعذر الوصول لمحتوى SVG، تأكد من أن الملفات على نفس النطاق (CORS).");
             }
         }
 
-        function applyColorToTree(element, color) {
-            element.dataset.originalFill = element.getAttribute("fill") || "";
-            element.style.fill = color;
-            element.style.transition = "fill 0.3s ease";
-
-            // تلوين جميع الكلمات (المسارات) داخل الآية
-            const subPaths = element.querySelectorAll("path, g");
-            subPaths.forEach(el => {
-                el.dataset.originalFill = el.getAttribute("fill") || "";
-                el.style.fill = color;
-                el.style.transition = "fill 0.3s ease";
-            });
-        }
-
-        function clearHighlight() {
-            const svgDoc = svgObject.contentDocument;
+        function removeHighlightFromSvg(svgDoc = quranSvg.contentDocument) {
             if (!svgDoc) return;
-
-            const styledElements = svgDoc.querySelectorAll('[data-original-fill]');
-            styledElements.forEach(el => {
-                if (el.dataset.originalFill) {
-                    el.style.fill = el.dataset.originalFill;
-                } else {
-                    el.style.removeProperty("fill");
-                }
-                delete el.dataset.originalFill;
+            const activeElements = svgDoc.querySelectorAll('.active-ayah');
+            activeElements.forEach(el => {
+                el.style.fill = ''; // العودة للون الأصلي
+                el.classList.remove('active-ayah');
             });
         }
 
-        // تحميل الصفحة الأولى عند فتح الموقع
-        window.onload = () => loadPage(currentPage);
+        // التهيئة الأولية
+        fetchPageData(currentPage);
     </script>
 </body>
 </html>
