@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المصحف المطابق للورقي - تصميم متجاوب</title>
+    <title>المصحف الإلكتروني المطابق لمصحف المدينة</title>
     
     <!-- استدعاء ملف الخطوط -->
     <link rel="stylesheet" href="fonts.css">
@@ -16,119 +16,123 @@
         }
 
         body {
-            background-color: #f0f2f5; /* لون خلفية الشاشة خارج المصحف */
+            background-color: #2c3e50;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 2vh 10px;
+            padding: 10px;
         }
 
-        /* حاوية المصحف الأساسية */
+        /* لوحة التحكم وتقليب الصفحات */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
+            align-items: center;
+        }
+
+        button {
+            background-color: #dab473;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 15px;
+            font-weight: bold;
+            color: #4a3b22;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #e8c78c;
+        }
+
+        /* إطار صفحة المصحف المتطابق */
         .mushaf-wrapper {
-            background-color: #FDF9EC; /* لون ورق المصحف الأصلي */
+            background-color: #fdfaf2;
+            border: 3px solid #dab473;
+            border-radius: 4px;
             width: 100%;
-            max-width: 550px; /* الحد الأقصى لعرض شاشة الكمبيوتر */
-            aspect-ratio: 0.65; /* نسبة الطول والعرض المطابقة للمصحف الحقيقي */
-            padding: 2.5% 4%;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            border: 1px solid #e0d4b8;
+            max-width: 500px;
+            aspect-ratio: 0.65; /* نسبة الطول للعرض مطابقة للمصحف الورقي */
+            padding: 4% 5%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             
-            /* التخطيط الداخلي للصفحة */
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
 
-        /* الترويسة العلوية (الجزء واسم السورة) */
+        /* ترويسة الصفحة */
         .mushaf-header {
             display: flex;
             justify-content: space-between;
             color: #b58c49;
-            font-size: clamp(12px, 3vw, 16px);
+            font-size: 13px;
             font-weight: bold;
-            margin-bottom: 2%;
+            border-bottom: 1px solid #e8dfc8;
+            padding-bottom: 5px;
         }
 
-        /* الحاوية التي تحمل الآيات */
+        /* متن الآيات (الـ 15 سطراً) */
         .mushaf-body {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-evenly; /* توزيع دقيق للـ 15 سطراً عمودياً */
             
-            /* إعدادات ضبط الـ 15 سطراً */
-            font-size: clamp(18px, 4.5vw, 32px); /* حجم خط مرن يتكيف مع الشاشة */
-            line-height: 1.9;
+            font-size: 24px; /* حجم يتناسب مع خطوط QCF4 داخل الإطار */
+            line-height: 1.8;
             text-align: justify;
             text-align-last: center;
-            word-break: normal; 
+            direction: rtl;
         }
 
         /* تذييل الصفحة (رقم الصفحة) */
         .mushaf-footer {
             display: flex;
             justify-content: center;
-            align-items: center;
-            margin-top: 2%;
+            border-top: 1px solid #e8dfc8;
+            padding-top: 5px;
         }
 
         .page-number-frame {
             border: 1px solid #b58c49;
-            border-radius: 20px;
-            padding: 2px 25px;
+            border-radius: 15px;
+            padding: 1px 20px;
             color: #b58c49;
-            font-size: clamp(12px, 3vw, 16px);
+            font-size: 13px;
             font-weight: bold;
-            background-color: transparent;
-        }
-
-        /* أزرار التحكم المخفية عن التصميم الأساسي */
-        .controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            z-index: 10;
-        }
-
-        button {
-            background-color: #b58c49;
-            color: #fff;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: inherit;
-        }
-
-        button:hover {
-            background-color: #9c783c;
         }
     </style>
 </head>
 <body>
 
+    <!-- أزرار التنقل الرسمية -->
     <div class="controls">
         <button onclick="changePage(1)">الصفحة التالية &larr;</button>
+        <span id="pageIndicator" style="color: white; font-weight: bold; font-size: 14px;">صفحة 1</span>
         <button onclick="changePage(-1)">&rarr; الصفحة السابقة</button>
     </div>
 
-    <!-- الإطار الكامل لصفحة المصحف -->
+    <!-- حاوية المصحف -->
     <div class="mushaf-wrapper">
         
-        <!-- الترويسة -->
         <div class="mushaf-header">
             <span id="surahNameDisplay">الفاتحة</span>
             <span id="juzNameDisplay">الجزء الأول</span>
         </div>
 
-        <!-- متن الآيات -->
         <div class="mushaf-body" id="quranContainer">
             <p style="text-align:center; color:#888;">جاري تحميل المصحف...</p>
         </div>
 
-        <!-- التذييل ورقم الصفحة -->
         <div class="mushaf-footer">
             <div class="page-number-frame" id="pageNumDisplay">1</div>
         </div>
@@ -137,7 +141,7 @@
 
     <script>
         let quranData = null;
-        let currentPage = 1;
+        let currentPage = 1; // البدء بصفحة الفاتحة (صفحة 1)
 
         async function fetchQuranData() {
             try {
@@ -145,8 +149,8 @@
                 quranData = await response.json();
                 renderPage(currentPage);
             } catch (error) {
-                console.error("خطأ:", error);
-                document.getElementById('quranContainer').innerHTML = "<p style='color:red;'>فشل التحميل</p>";
+                console.error("خطأ في التحميل:", error);
+                document.getElementById('quranContainer').innerHTML = "<p style='color:red; text-align:center;'>فشل تحميل البيانات</p>";
             }
         }
 
@@ -155,35 +159,34 @@
 
             const container = document.getElementById('quranContainer');
             let htmlContent = '';
-            let currentSurah = '';
-            
+            let activeSurah = "";
+
+            // البحث المباشر في ملف الـ JSON عن الأجزاء (chunks) التي تتبع لهذه الصفحة (`p === pageNumber`)
             quranData.ayat.forEach(ayahData => {
-                const pageChunks = ayahData.chunks.filter(chunk => chunk.p === pageNumber);
+                const matchingChunks = ayahData.chunks.filter(chunk => chunk.p === pageNumber);
                 
-                if(pageChunks.length > 0) {
-                    // تحديث اسم السورة في الترويسة برمجياً
-                    // ملاحظة: يمكنك لاحقاً جلب الاسم الدقيق من ملف quran.json
-                    currentSurah = `سورة رقم ${ayahData.surah}`; 
+                if (matchingChunks.length > 0) {
+                    activeSurah = `سورة رقم ${ayahData.surah}`; // سيتم تحديثه باسم السورة بدقة
                 }
 
-                pageChunks.forEach(chunk => {
+                matchingChunks.forEach(chunk => {
+                    // استخدام عائلة الخط الخاصة بكل جزء (`chunk.family`) والترتيب الصحيح للنص
                     htmlContent += `
-                        <span 
-                            id="ayah-${ayahData.surah}-${ayahData.ayah}" 
-                            style="font-family: '${chunk.family}';"
-                        >${chunk.text}</span>&#8203;
+                        <span style="font-family: '${chunk.family}';">${chunk.text}</span>&#8203;
                     `;
                 });
             });
 
-            if (htmlContent !== '') {
+            if (htmlContent.trim() !== '') {
                 container.innerHTML = htmlContent;
                 document.getElementById('pageNumDisplay').innerText = pageNumber;
-                document.getElementById('surahNameDisplay').innerText = currentSurah;
+                document.getElementById('pageIndicator').innerText = `صفحة ${pageNumber}`;
+                document.getElementById('surahNameDisplay').innerText = activeSurah;
                 
-                // تحديد الجزء برمجياً (تبسيط: كل 20 صفحة تقريباً جزء)
                 const juz = Math.ceil(pageNumber / 20);
                 document.getElementById('juzNameDisplay').innerText = `الجزء ${juz}`;
+            } else {
+                container.innerHTML = "<p style='text-align:center; color:#888;'>عذراً، هذه الصفحة غير متوفرة في الملف الحالي.</p>";
             }
         }
 
