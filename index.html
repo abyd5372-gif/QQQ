@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المصحف الإلكتروني المطابق لمصحف المدينة</title>
+    <title>المصحف الشريف - مطابق لمصحف المدينة</title>
     
-    <!-- استدعاء ملف الخطوط -->
+    <!-- استدعاء ملف الخطوط الأصلي -->
     <link rel="stylesheet" href="fonts.css">
     
     <style>
@@ -16,7 +16,7 @@
         }
 
         body {
-            background-color: #2c3e50;
+            background-color: #1e293b;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -41,8 +41,8 @@
         button {
             background-color: #dab473;
             border: none;
-            padding: 6px 18px;
-            border-radius: 15px;
+            padding: 8px 20px;
+            border-radius: 20px;
             font-weight: bold;
             color: #4a3b22;
             cursor: pointer;
@@ -53,23 +53,23 @@
             background-color: #e8c78c;
         }
 
-        /* إطار صفحة المصحف المتطابق */
+        /* إطار صفحة المصحف الورقي */
         .mushaf-wrapper {
             background-color: #fdfaf2;
             border: 3px solid #dab473;
-            border-radius: 4px;
+            border-radius: 6px;
             width: 100%;
-            max-width: 500px;
-            aspect-ratio: 0.65; /* نسبة الطول للعرض مطابقة للمصحف الورقي */
-            padding: 4% 5%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 480px;
+            aspect-ratio: 0.63; /* النسبة القياسية لصفحة المصحف */
+            padding: 3% 4%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
             
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
 
-        /* ترويسة الصفحة */
+        /* ترويسة الصفحة (اسم السورة ورقم الجزء) */
         .mushaf-header {
             display: flex;
             justify-content: space-between;
@@ -77,18 +77,18 @@
             font-size: 13px;
             font-weight: bold;
             border-bottom: 1px solid #e8dfc8;
-            padding-bottom: 5px;
+            padding-bottom: 4px;
         }
 
-        /* متن الآيات (الـ 15 سطراً) */
+        /* متن الآيات (الـ 15 سطراً بانتظام تام) */
         .mushaf-body {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: space-evenly; /* توزيع دقيق للـ 15 سطراً عمودياً */
+            justify-content: space-between; /* توزيع دقيق للأسطر الـ 15 عمودياً */
             
-            font-size: 24px; /* حجم يتناسب مع خطوط QCF4 داخل الإطار */
-            line-height: 1.8;
+            font-size: 23px;
+            line-height: 1.7;
             text-align: justify;
             text-align-last: center;
             direction: rtl;
@@ -99,13 +99,13 @@
             display: flex;
             justify-content: center;
             border-top: 1px solid #e8dfc8;
-            padding-top: 5px;
+            padding-top: 4px;
         }
 
         .page-number-frame {
             border: 1px solid #b58c49;
             border-radius: 15px;
-            padding: 1px 20px;
+            padding: 1px 25px;
             color: #b58c49;
             font-size: 13px;
             font-weight: bold;
@@ -114,14 +114,14 @@
 </head>
 <body>
 
-    <!-- أزرار التنقل الرسمية -->
+    <!-- أزرار التنقل بين صفحات المصحف (1 إلى 604) -->
     <div class="controls">
         <button onclick="changePage(1)">الصفحة التالية &larr;</button>
         <span id="pageIndicator" style="color: white; font-weight: bold; font-size: 14px;">صفحة 1</span>
         <button onclick="changePage(-1)">&rarr; الصفحة السابقة</button>
     </div>
 
-    <!-- حاوية المصحف -->
+    <!-- حاوية صفحة المصحف -->
     <div class="mushaf-wrapper">
         
         <div class="mushaf-header">
@@ -141,7 +141,7 @@
 
     <script>
         let quranData = null;
-        let currentPage = 1; // البدء بصفحة الفاتحة (صفحة 1)
+        let currentPage = 1; // تبدأ من الصفحة الأولى (الفاتحة)
 
         async function fetchQuranData() {
             try {
@@ -159,20 +159,21 @@
 
             const container = document.getElementById('quranContainer');
             let htmlContent = '';
-            let activeSurah = "";
+            let detectedSurah = "القرآن الكريم";
 
-            // البحث المباشر في ملف الـ JSON عن الأجزاء (chunks) التي تتبع لهذه الصفحة (`p === pageNumber`)
+            // المرور بترتيب الآيات الأصلي لضمان عدم انعكاس أو عشوائية الترتيب
             quranData.ayat.forEach(ayahData => {
-                const matchingChunks = ayahData.chunks.filter(chunk => chunk.p === pageNumber);
+                // تصفية الأجزاء التي تنتمي حصرياً لهذه الصفحة
+                const pageChunks = ayahData.chunks.filter(chunk => chunk.p === pageNumber);
                 
-                if (matchingChunks.length > 0) {
-                    activeSurah = `سورة رقم ${ayahData.surah}`; // سيتم تحديثه باسم السورة بدقة
+                if (pageChunks.length > 0) {
+                    detectedSurah = `سورة رقم ${ayahData.surah}`;
                 }
 
-                matchingChunks.forEach(chunk => {
-                    // استخدام عائلة الخط الخاصة بكل جزء (`chunk.family`) والترتيب الصحيح للنص
+                pageChunks.forEach(chunk => {
+                    // استخدام خط الصفحة المحدد بدقة من ملف الـ JSON
                     htmlContent += `
-                        <span style="font-family: '${chunk.family}';">${chunk.text}</span>&#8203;
+                        <span style="font-family: '${chunk.family}';">${chunk.text}</span>
                     `;
                 });
             });
@@ -181,12 +182,13 @@
                 container.innerHTML = htmlContent;
                 document.getElementById('pageNumDisplay').innerText = pageNumber;
                 document.getElementById('pageIndicator').innerText = `صفحة ${pageNumber}`;
-                document.getElementById('surahNameDisplay').innerText = activeSurah;
+                document.getElementById('surahNameDisplay').innerText = detectedSurah;
                 
+                // حساب الجزء بناءً على رقم الصفحة في مصحف المدينة
                 const juz = Math.ceil(pageNumber / 20);
                 document.getElementById('juzNameDisplay').innerText = `الجزء ${juz}`;
             } else {
-                container.innerHTML = "<p style='text-align:center; color:#888;'>عذراً، هذه الصفحة غير متوفرة في الملف الحالي.</p>";
+                container.innerHTML = "<p style='text-align:center; color:#888;'>انتهت صفحات المصحف أو حدث خطأ في المطابقة.</p>";
             }
         }
 
