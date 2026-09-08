@@ -1,18 +1,73 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+<<<<<<< HEAD
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المصحف الشريف - مطابقة تامة لمصحف المدينة</title>
+    
+    <!-- استدعاء ملف الخطوط الأصلي -->
+    <link rel="stylesheet" href="fonts.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+=======
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>المصحف الإلكتروني — مصحف المدينة المنورة (QCF4)</title>
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
 
+<<<<<<< HEAD
+        body {
+            background-color: #1a202c;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 10px;
+        }
+=======
 <!-- خط عربي للواجهة فقط (الترويسة، اسم السورة، البسملة الاحتياطية، الأزرار) -->
 <!-- نص القرآن نفسه لا يُعرض بهذا الخط إطلاقاً، بل بخطوط QCF4 المعرّفة في fonts.css -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap">
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
 
+<<<<<<< HEAD
+        /* لوحة التحكم المحدثة (أزرار + خانة إدخال رقم الصفحة) */
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
+            align-items: center;
+        }
+=======
 <!-- ملف تعريفات @font-face لخطوط QCF4 — موجود بالفعل في مشروعك -->
 <link rel="stylesheet" href="fonts.css">
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
 
+<<<<<<< HEAD
+        button {
+            background-color: #dab473;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #4a3b22;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+=======
 <style>
   :root{
     /* ===== ألوان المصحف ===== */
@@ -23,6 +78,7 @@
     --ink-soft:#5a4a30;
     --maroon:#7c2434;
     --shadow: rgba(50,35,10,.35);
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
 
     /* =====================================================================
        إعدادات المعايرة (Calibration) — هذه هي القيم التي يجب ضبطها
@@ -39,6 +95,46 @@
     /* ===================================================================== */
   }
 
+<<<<<<< HEAD
+        /* تنسيق خانة إدخال رقم الصفحة */
+        .page-input-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            width: 60px;
+            padding: 6px;
+            text-align: center;
+            border-radius: 15px;
+            border: 2px solid #dab473;
+            background-color: #fdfaf2;
+            color: #4a3b22;
+            font-weight: bold;
+            font-size: 14px;
+            outline: none;
+        }
+
+        /* إطار صفحة المصحف الورقي بدقة مطابقة */
+        .mushaf-wrapper {
+            background-color: #fdfaf2;
+            border: 3px solid #dab473;
+            border-radius: 6px;
+            width: 100%;
+            max-width: 480px;
+            aspect-ratio: 0.63; /* النسبة القياسية لصفحة المصحف الطولية */
+            padding: 4% 4%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+=======
   *{box-sizing:border-box;}
   html,body{height:100%;}
   body{
@@ -54,6 +150,7 @@
     font-family:'Amiri','Traditional Arabic',serif;
     color:var(--ink);
   }
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
 
   h1.app-title{
     font-size:15px;
@@ -64,7 +161,26 @@
     text-align:center;
   }
 
+<<<<<<< HEAD
+        /* متن الآيات مع الحفاظ على التنسيق والأسطر */
+        .mushaf-body {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            
+            font-size: 22px;
+            line-height: 1.8;
+            text-align: justify;
+            text-align-last: center;
+            direction: rtl;
+            
+            white-space: pre-wrap; 
+            word-break: normal;
+        }
+=======
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
 
   /* ===================== حاوية الصفحة المتجاوبة ===================== */
   .mushaf-stage{
@@ -249,7 +365,22 @@
 </head>
 <body>
 
+<<<<<<< HEAD
+    <!-- لوحة التحكم المتكاملة (أزرار + إدخال رقم الصفحة) -->
+    <div class="controls">
+        <button onclick="changePage(1)">الصفحة التالية &larr;</button>
+        
+        <div class="page-input-container">
+            <span>ص:</span>
+            <input type="number" id="pageNumberInput" min="1" max="604" value="1" onchange="jumpToPage()" title="اكتب رقم الصفحة واضغط Enter">
+            <span>/ 604</span>
+        </div>
+
+        <button onclick="changePage(-1)">&rarr; الصفحة السابقة</button>
+    </div>
+=======
   <h1 class="app-title">المصحف الإلكتروني — برواية حفص عن عاصم</h1>
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
 
   <div class="mushaf-stage">
     <div class="mushaf-viewport" id="viewport">
@@ -265,8 +396,13 @@
           <span id="hdrJuz">—</span>
         </div>
 
+<<<<<<< HEAD
+        <div class="mushaf-body" id="quranContainer">
+            <p style="text-align:center; color:#888; font-family:sans-serif; white-space:normal;">جاري تحميل المصحف...</p>
+=======
         <div class="page-content" id="pageContent">
           <div class="state-msg" id="stateMsg">جارِ تحميل بيانات المصحف…</div>
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
         </div>
 
         <div class="page-footer">
@@ -285,11 +421,30 @@
     <button id="btnPrev" type="button">› السابقة</button>
   </div>
 
+<<<<<<< HEAD
+    <script>
+        let quranData = null;
+        let currentPage = 1;
+=======
   <p class="sr-only" id="liveRegion" aria-live="polite"></p>
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
 
+<<<<<<< HEAD
+        async function fetchQuranData() {
+            try {
+                const response = await fetch('quran-glyphs.json');
+                quranData = await response.json();
+                renderPage(currentPage);
+            } catch (error) {
+                console.error("خطأ في التحميل:", error);
+                document.getElementById('quranContainer').innerHTML = "<p style='color:red; text-align:center; font-family:sans-serif; white-space:normal;'>فشل تحميل البيانات</p>";
+            }
+        }
+=======
 <script>
 (function(){
   "use strict";
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
 
   /* ============================ الإعدادات ============================ */
   const CONFIG = {
@@ -297,11 +452,29 @@
     dataUrl: 'quran-glyphs.json'
   };
 
+<<<<<<< HEAD
+            const container = document.getElementById('quranContainer');
+            let htmlContent = '';
+            let detectedSurah = "";
+=======
   // نقرأ عرض التصميم من متغيّر CSS حتى يبقى مصدراً واحداً للقيمة
   const DESIGN_W = parseFloat(
     getComputedStyle(document.documentElement).getPropertyValue('--design-w')
   ) || 460;
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
 
+<<<<<<< HEAD
+            quranData.ayat.forEach(ayahData => {
+                const pageChunks = ayahData.chunks.filter(chunk => chunk.p === pageNumber);
+                
+                pageChunks.forEach(chunk => {
+                    if (!detectedSurah) {
+                        detectedSurah = `سورة ${getSurahName(ayahData.surah)}`;
+                    }
+                    htmlContent += `<span style="font-family: '${chunk.family}';">${chunk.text}</span>`;
+                });
+            });
+=======
   /* أرقام الصفحات التي يبدأ عندها كل جزء (1..30) في مصحف المدينة ذي الـ604 صفحة */
   const JUZ_START_PAGE = [
     1,22,42,62,82,102,122,142,162,182,
@@ -323,9 +496,36 @@
     "القارعة","التكاثر","العصر","الهمزة","الفيل","قريش","الماعون","الكوثر","الكافرون","النصر",
     "المسد","الإخلاص","الفلق","الناس"
   ];
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
 
+<<<<<<< HEAD
+            if (htmlContent.trim() !== '') {
+                container.innerHTML = htmlContent;
+                
+                // تحديث واجهة رقم الصفحة والإدخال
+                document.getElementById('pageNumDisplay').innerText = pageNumber;
+                document.getElementById('pageNumberInput').value = pageNumber;
+                document.getElementById('surahNameDisplay').innerText = detectedSurah || `صفحة ${pageNumber}`;
+                
+                const juz = Math.ceil(pageNumber / 20);
+                document.getElementById('juzNameDisplay').innerText = `الجزء ${juz}`;
+            } else {
+                container.innerHTML = "<p style='text-align:center; color:#888; font-family:sans-serif; white-space:normal;'>الصفحة غير متوفرة.</p>";
+            }
+        }
+=======
   const BASMALA_TEXT = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ";
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
 
+<<<<<<< HEAD
+        // تقليب الصفحات عبر الأزرار
+        function changePage(direction) {
+            const newPage = currentPage + direction;
+            if (newPage >= 1 && newPage <= 604) {
+                currentPage = newPage;
+                renderPage(currentPage);
+            }
+=======
   /* ============================ الحالة ============================ */
   let pagesIndex = null;      // Map<pageNumber, Array<chunkInfo>>
   let currentPage = 1;
@@ -449,10 +649,30 @@
           bsml.className = 'basmala-line';
           bsml.textContent = BASMALA_TEXT;
           els.content.appendChild(bsml);
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
         }
 
+<<<<<<< HEAD
+        // الانتقال المباشر عن طريق كتابة رقم الصفحة في الخانة
+        function jumpToPage() {
+            const inputField = document.getElementById('pageNumberInput');
+            let targetPage = parseInt(inputField.value);
+
+            if (targetPage >= 1 && targetPage <= 604) {
+                currentPage = targetPage;
+                renderPage(currentPage);
+            } else {
+                alert("الرجاء إدخال رقم صفحة صحيح بين 1 و 604");
+                inputField.value = currentPage; // إعادة الرقم القديم في حال الخطأ
+            }
+        }
+
+        fetchQuranData();
+    </script>
+=======
         newFlow();
       }
+>>>>>>> c25860492a70fd97ccc5671aaf219d5b12237317
 
       if(item.surah !== currentSurah){
         currentSurah = item.surah;
