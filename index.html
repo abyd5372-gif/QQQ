@@ -1,207 +1,525 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المصحف الشريف - مطابق لمصحف المدينة</title>
-    
-    <!-- استدعاء ملف الخطوط الأصلي -->
-    <link rel="stylesheet" href="fonts.css">
-    
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>المصحف الإلكتروني — مصحف المدينة المنورة (QCF4)</title>
 
-        body {
-            background-color: #1e293b;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 10px;
-        }
+<!-- خط عربي للواجهة فقط (الترويسة، اسم السورة، البسملة الاحتياطية، الأزرار) -->
+<!-- نص القرآن نفسه لا يُعرض بهذا الخط إطلاقاً، بل بخطوط QCF4 المعرّفة في fonts.css -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap">
 
-        /* لوحة التحكم وتقليب الصفحات */
-        .controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 20px;
-            border-radius: 30px;
-            backdrop-filter: blur(5px);
-            align-items: center;
-        }
+<!-- ملف تعريفات @font-face لخطوط QCF4 — موجود بالفعل في مشروعك -->
+<link rel="stylesheet" href="fonts.css">
 
-        button {
-            background-color: #dab473;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            color: #4a3b22;
-            cursor: pointer;
-            transition: 0.3s;
-        }
+<style>
+  :root{
+    /* ===== ألوان المصحف ===== */
+    --paper:#fdfaf2;
+    --gold:#dab473;
+    --gold-deep:#a8793f;
+    --ink:#241c10;
+    --ink-soft:#5a4a30;
+    --maroon:#7c2434;
+    --shadow: rgba(50,35,10,.35);
 
-        button:hover {
-            background-color: #e8c78c;
-        }
+    /* =====================================================================
+       إعدادات المعايرة (Calibration) — هذه هي القيم التي يجب ضبطها
+       بحيث تتطابق نتيجة الالتفاف التلقائي للنص (line-wrap) مع 15 سطراً
+       بالضبط، حسب القياسات الحقيقية التي بُنيت عليها خطوط QCF4 لديك.
+       اضبط design-w و quran-font-size معاً (بنفس النسبة تقريباً) حتى
+       تحصل على 15 سطراً كاملاً بلا فراغ زائد ولا تجاوز في صفحة مزدحمة
+       (مثل صفحات سورة البقرة)، ثم اتركها ثابتة لبقية الصفحات لأن كل
+       خط صفحة مُصمَّم أصلاً ليتوافق مع نفس عرض السطر. -->
+    --design-w: 460px;      /* العرض التصميمي الثابت للصفحة */
+    --design-ratio: 0.706;  /* نسبة العرض إلى الارتفاع (تقارب أبعاد مصحف المدينة) */
+    --quran-font-size: 27px;
+    --quran-line-height: 44px;
+    /* ===================================================================== */
+  }
 
-        /* إطار صفحة المصحف الورقي */
-        .mushaf-wrapper {
-            background-color: #fdfaf2;
-            border: 3px solid #dab473;
-            border-radius: 6px;
-            width: 100%;
-            max-width: 480px;
-            aspect-ratio: 0.63; /* النسبة القياسية لصفحة المصحف */
-            padding: 3% 4%;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-            
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100%;
+    background:
+      radial-gradient(ellipse at 50% 0%, #efe6d3 0%, #e4d8bd 60%, #d9caa9 100%);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    padding:18px 10px 26px;
+    font-family:'Amiri','Traditional Arabic',serif;
+    color:var(--ink);
+  }
 
-        /* ترويسة الصفحة (اسم السورة ورقم الجزء) */
-        .mushaf-header {
-            display: flex;
-            justify-content: space-between;
-            color: #b58c49;
-            font-size: 13px;
-            font-weight: bold;
-            border-bottom: 1px solid #e8dfc8;
-            padding-bottom: 4px;
-        }
+  h1.app-title{
+    font-size:15px;
+    font-weight:700;
+    color:var(--ink-soft);
+    letter-spacing:.5px;
+    margin:0 0 14px;
+    text-align:center;
+  }
 
-        /* متن الآيات (الـ 15 سطراً بانتظام تام) */
-        .mushaf-body {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between; /* توزيع دقيق للأسطر الـ 15 عمودياً */
-            
-            font-size: 23px;
-            line-height: 1.7;
-            text-align: justify;
-            text-align-last: center;
-            direction: rtl;
-        }
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 
-        /* تذييل الصفحة (رقم الصفحة) */
-        .mushaf-footer {
-            display: flex;
-            justify-content: center;
-            border-top: 1px solid #e8dfc8;
-            padding-top: 4px;
-        }
+  /* ===================== حاوية الصفحة المتجاوبة ===================== */
+  .mushaf-stage{
+    width:100%;
+    max-width:640px;
+    display:flex;
+    justify-content:center;
+  }
+  .mushaf-viewport{
+    position:relative;
+    width:100%;
+    aspect-ratio: var(--design-ratio);
+    max-height:78vh;
+    max-width: calc(78vh * var(--design-ratio));
+  }
 
-        .page-number-frame {
-            border: 1px solid #b58c49;
-            border-radius: 15px;
-            padding: 1px 25px;
-            color: #b58c49;
-            font-size: 13px;
-            font-weight: bold;
-        }
-    </style>
+  .mushaf-page{
+    position:absolute;
+    top:0;
+    right:50%;
+    width:var(--design-w);
+    aspect-ratio:var(--design-ratio);
+    transform-origin:top center;
+    transform: translateX(50%) scale(1); /* يُحدَّث عبر JS */
+    background:var(--paper);
+    box-shadow:
+      0 0 0 6px var(--paper),
+      0 0 0 8px var(--gold),
+      0 0 0 9px var(--gold-deep),
+      0 16px 40px var(--shadow);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+
+  /* زخارف الزوايا الأربع */
+  .corner{position:absolute;width:13px;height:13px;background:var(--gold-deep);transform:rotate(45deg);z-index:3;}
+  .corner-tl{top:2px;right:2px;}
+  .corner-tr{top:2px;left:2px;}
+  .corner-bl{bottom:2px;right:2px;}
+  .corner-br{bottom:2px;left:2px;}
+
+  /* ===================== ترويسة الصفحة ===================== */
+  .page-header{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 24px 8px;
+    font-size:13px;
+    color:var(--gold-deep);
+    font-weight:700;
+    letter-spacing:.3px;
+  }
+  .page-header .divider{
+    flex:1;
+    height:1px;
+    margin:0 10px;
+    background:linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  /* ===================== منطقة نص المصحف ===================== */
+  .page-content{
+    flex:1 1 auto;
+    overflow:hidden;
+    padding:2px clamp(18px, 6%, 30px) 4px;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+  }
+
+  .surah-banner{
+    margin:8px auto 6px;
+    width:90%;
+    text-align:center;
+    position:relative;
+    padding:6px 10px;
+    background:linear-gradient(180deg, var(--gold) 0%, var(--gold-deep) 100%);
+    clip-path: polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%);
+    color:#fffaf0;
+    font-family:'Amiri',serif;
+    font-weight:700;
+    font-size:17px;
+    letter-spacing:1px;
+    box-shadow:0 1px 3px var(--shadow);
+    flex:0 0 auto;
+  }
+
+  .basmala-line{
+    flex:0 0 auto;
+    text-align:center;
+    font-family:'Amiri',serif;
+    font-weight:700;
+    font-size:22px;
+    color:var(--maroon);
+    margin:2px 0 8px;
+  }
+
+  .quran-flow{
+    direction:rtl;
+    text-align:justify;
+    text-justify:inter-word;
+    line-height:var(--quran-line-height);
+    font-size:var(--quran-font-size);
+    color:var(--ink);
+    margin:0;
+  }
+  /* آخر سطر في كل فقرة لا يُمدّ (سلوك المصاحف الطبيعي) إلا إذا كانت الفقرة تتصل بفقرة تالية بلا فاصل مرئي */
+  .quran-flow + .quran-flow{ margin-top:0; }
+
+  /* ===================== تذييل الصفحة ===================== */
+  .page-footer{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:6px 0 14px;
+  }
+  .page-number-frame{
+    width:38px;height:38px;border-radius:50%;
+    border:2px solid var(--gold-deep);
+    background:radial-gradient(circle at 50% 38%, #fffaf0, var(--gold) 130%);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Amiri',serif;
+    font-weight:700;
+    font-size:14px;
+    color:var(--ink);
+    box-shadow: inset 0 0 0 3px var(--paper), 0 1px 2px var(--shadow);
+  }
+
+  .state-msg{
+    margin:auto;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:15px;
+    padding:20px;
+  }
+
+  /* ===================== أزرار التحكم ===================== */
+  .controls{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:16px;
+    width:100%;
+    max-width:640px;
+  }
+  .controls button{
+    background:var(--gold-deep);
+    color:#fffaf0;
+    border:none;
+    padding:10px 18px;
+    border-radius:7px;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .controls button:hover:not(:disabled){background:var(--maroon);}
+  .controls button:disabled{opacity:.4;cursor:not-allowed;}
+  .page-jump{display:flex;align-items:center;gap:6px;}
+  .page-jump input{
+    width:64px;
+    text-align:center;
+    padding:9px 6px;
+    border:1px solid var(--gold-deep);
+    border-radius:7px;
+    font-family:inherit;
+    font-size:15px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .page-jump button{padding:9px 14px;}
+
+  @media (prefers-reduced-motion: no-preference){
+    .mushaf-page{transition:opacity .12s ease;}
+  }
+</style>
 </head>
 <body>
 
-    <!-- أزرار التنقل بين صفحات المصحف (1 إلى 604) -->
-    <div class="controls">
-        <button onclick="changePage(1)">الصفحة التالية &larr;</button>
-        <span id="pageIndicator" style="color: white; font-weight: bold; font-size: 14px;">صفحة 1</span>
-        <button onclick="changePage(-1)">&rarr; الصفحة السابقة</button>
+  <h1 class="app-title">المصحف الإلكتروني — برواية حفص عن عاصم</h1>
+
+  <div class="mushaf-stage">
+    <div class="mushaf-viewport" id="viewport">
+      <div class="mushaf-page" id="mushafPage">
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+
+        <div class="page-header">
+          <span id="hdrSurah">—</span>
+          <span class="divider"></span>
+          <span id="hdrJuz">—</span>
+        </div>
+
+        <div class="page-content" id="pageContent">
+          <div class="state-msg" id="stateMsg">جارِ تحميل بيانات المصحف…</div>
+        </div>
+
+        <div class="page-footer">
+          <div class="page-number-frame"><span id="pageNumber">—</span></div>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- حاوية صفحة المصحف -->
-    <div class="mushaf-wrapper">
-        
-        <div class="mushaf-header">
-            <span id="surahNameDisplay">الفاتحة</span>
-            <span id="juzNameDisplay">الجزء الأول</span>
-        </div>
-
-        <div class="mushaf-body" id="quranContainer">
-            <p style="text-align:center; color:#888;">جاري تحميل المصحف...</p>
-        </div>
-
-        <div class="mushaf-footer">
-            <div class="page-number-frame" id="pageNumDisplay">1</div>
-        </div>
-
+  <div class="controls">
+    <button id="btnNext" type="button">التالية ‹</button>
+    <div class="page-jump">
+      <input id="pageInput" type="number" min="1" max="604" value="1" aria-label="رقم الصفحة">
+      <button id="btnGo" type="button">اذهب</button>
     </div>
+    <button id="btnPrev" type="button">› السابقة</button>
+  </div>
 
-    <script>
-        let quranData = null;
-        let currentPage = 1; // تبدأ من الصفحة الأولى (الفاتحة)
+  <p class="sr-only" id="liveRegion" aria-live="polite"></p>
 
-        async function fetchQuranData() {
-            try {
-                const response = await fetch('quran-glyphs.json');
-                quranData = await response.json();
-                renderPage(currentPage);
-            } catch (error) {
-                console.error("خطأ في التحميل:", error);
-                document.getElementById('quranContainer').innerHTML = "<p style='color:red; text-align:center;'>فشل تحميل البيانات</p>";
-            }
+<script>
+(function(){
+  "use strict";
+
+  /* ============================ الإعدادات ============================ */
+  const CONFIG = {
+    totalPages: 604,
+    dataUrl: 'quran-glyphs.json'
+  };
+
+  // نقرأ عرض التصميم من متغيّر CSS حتى يبقى مصدراً واحداً للقيمة
+  const DESIGN_W = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--design-w')
+  ) || 460;
+
+  /* أرقام الصفحات التي يبدأ عندها كل جزء (1..30) في مصحف المدينة ذي الـ604 صفحة */
+  const JUZ_START_PAGE = [
+    1,22,42,62,82,102,122,142,162,182,
+    202,222,242,262,282,302,322,342,362,382,
+    402,422,442,462,482,502,522,542,562,582
+  ];
+
+  const SURAH_NAMES = [
+    "الفاتحة","البقرة","آل عمران","النساء","المائدة","الأنعام","الأعراف","الأنفال","التوبة","يونس",
+    "هود","يوسف","الرعد","إبراهيم","الحجر","النحل","الإسراء","الكهف","مريم","طه",
+    "الأنبياء","الحج","المؤمنون","النور","الفرقان","الشعراء","النمل","القصص","العنكبوت","الروم",
+    "لقمان","السجدة","الأحزاب","سبأ","فاطر","يس","الصافات","ص","الزمر","غافر",
+    "فصلت","الشورى","الزخرف","الدخان","الجاثية","الأحقاف","محمد","الفتح","الحجرات","ق",
+    "الذاريات","الطور","النجم","القمر","الرحمن","الواقعة","الحديد","المجادلة","الحشر","الممتحنة",
+    "الصف","الجمعة","المنافقون","التغابن","الطلاق","التحريم","الملك","القلم","الحاقة","المعارج",
+    "نوح","الجن","المزمل","المدثر","القيامة","الإنسان","المرسلات","النبأ","النازعات","عبس",
+    "التكوير","الانفطار","المطففين","الانشقاق","البروج","الطارق","الأعلى","الغاشية","الفجر","البلد",
+    "الشمس","الليل","الضحى","الشرح","التين","العلق","القدر","البينة","الزلزلة","العاديات",
+    "القارعة","التكاثر","العصر","الهمزة","الفيل","قريش","الماعون","الكوثر","الكافرون","النصر",
+    "المسد","الإخلاص","الفلق","الناس"
+  ];
+
+  const BASMALA_TEXT = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ";
+
+  /* ============================ الحالة ============================ */
+  let pagesIndex = null;      // Map<pageNumber, Array<chunkInfo>>
+  let currentPage = 1;
+
+  const els = {
+    viewport: document.getElementById('viewport'),
+    page: document.getElementById('mushafPage'),
+    content: document.getElementById('pageContent'),
+    hdrSurah: document.getElementById('hdrSurah'),
+    hdrJuz: document.getElementById('hdrJuz'),
+    pageNumber: document.getElementById('pageNumber'),
+    pageInput: document.getElementById('pageInput'),
+    btnNext: document.getElementById('btnNext'),
+    btnPrev: document.getElementById('btnPrev'),
+    btnGo: document.getElementById('btnGo'),
+    live: document.getElementById('liveRegion')
+  };
+
+  /* ============================ أدوات مساعدة ============================ */
+  function toArabicDigits(num){
+    const map = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+    return String(num).split('').map(d => map[+d] !== undefined ? map[+d] : d).join('');
+  }
+
+  function getJuz(page){
+    let juz = 1;
+    for(let i=0;i<JUZ_START_PAGE.length;i++){
+      if(page >= JUZ_START_PAGE[i]) juz = i+1; else break;
+    }
+    return juz;
+  }
+
+  function fitPageToViewport(){
+    const scale = els.viewport.clientWidth / DESIGN_W;
+    els.page.style.transform = `translateX(50%) scale(${scale})`;
+  }
+
+  /* ============================ تحميل البيانات ============================ */
+  async function loadData(){
+    try{
+      const res = await fetch(CONFIG.dataUrl);
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      buildPageIndex(data);
+      renderPage(currentPage);
+    }catch(err){
+      els.content.innerHTML =
+        '<div class="state-msg">تعذّر تحميل quran-glyphs.json<br>'
+        + 'تأكد أن الملف موجود بجانب هذه الصفحة، وأنك تفتح الموقع عبر خادم محلي (http://) لا عبر file:// مباشرة.'
+        + '</div>';
+      console.error('Mushaf data load failed:', err);
+    }
+  }
+
+  function buildPageIndex(data){
+    pagesIndex = new Map();
+    const ayat = (data && data.ayat) ? data.ayat : [];
+    for(const ayahObj of ayat){
+      const surah = ayahObj.surah;
+      const ayah = ayahObj.ayah;
+      const chunks = ayahObj.chunks || [];
+      chunks.forEach((chunk, idx) => {
+        const p = chunk.p;
+        if(p === undefined || p === null) return;
+        if(!pagesIndex.has(p)) pagesIndex.set(p, []);
+        pagesIndex.get(p).push({
+          surah, ayah,
+          family: chunk.family,
+          text: chunk.text || '',
+          isAyahStart: idx === 0
+        });
+      });
+    }
+  }
+
+  /* ============================ عرض الصفحة ============================ */
+  function renderPage(page){
+    currentPage = Math.min(Math.max(page, 1), CONFIG.totalPages);
+    els.pageInput.value = currentPage;
+    els.pageNumber.textContent = toArabicDigits(currentPage);
+    els.hdrJuz.textContent = 'الجزء ' + toArabicDigits(getJuz(currentPage));
+    els.btnPrev.disabled = currentPage <= 1;
+    els.btnNext.disabled = currentPage >= CONFIG.totalPages;
+
+    const items = (pagesIndex && pagesIndex.get(currentPage)) || [];
+    els.content.innerHTML = '';
+
+    if(items.length === 0){
+      els.content.innerHTML = '<div class="state-msg">لا توجد بيانات لهذه الصفحة بعد في quran-glyphs.json</div>';
+      els.hdrSurah.textContent = '—';
+      els.live.textContent = 'صفحة ' + currentPage + '، لا توجد بيانات';
+      return;
+    }
+
+    let currentSurah = null;
+    let flowEl = null;
+
+    function newFlow(){
+      const p = document.createElement('p');
+      p.className = 'quran-flow';
+      els.content.appendChild(p);
+      flowEl = p;
+      return p;
+    }
+
+    items.forEach(item => {
+      const isNewSurahOnThisPage = item.isAyahStart && item.ayah === 1 && item.surah !== currentSurah;
+
+      if(isNewSurahOnThisPage){
+        currentSurah = item.surah;
+
+        const banner = document.createElement('div');
+        banner.className = 'surah-banner';
+        banner.textContent = 'سورة ' + (SURAH_NAMES[item.surah - 1] || item.surah);
+        els.content.appendChild(banner);
+
+        // البسملة تُطبع أعلى كل سورة عدا التوبة، وعدا الفاتحة لأن البسملة
+        // فيها هي الآية الأولى نفسها وستُعرض ضمن نص الصفحة أصلاً
+        if(item.surah !== 9 && item.surah !== 1){
+          const bsml = document.createElement('div');
+          bsml.className = 'basmala-line';
+          bsml.textContent = BASMALA_TEXT;
+          els.content.appendChild(bsml);
         }
 
-        function renderPage(pageNumber) {
-            if (!quranData) return;
+        newFlow();
+      }
 
-            const container = document.getElementById('quranContainer');
-            let htmlContent = '';
-            let detectedSurah = "القرآن الكريم";
+      if(item.surah !== currentSurah){
+        currentSurah = item.surah;
+      }
+      if(!flowEl){
+        newFlow();
+      }
 
-            // المرور بترتيب الآيات الأصلي لضمان عدم انعكاس أو عشوائية الترتيب
-            quranData.ayat.forEach(ayahData => {
-                // تصفية الأجزاء التي تنتمي حصرياً لهذه الصفحة
-                const pageChunks = ayahData.chunks.filter(chunk => chunk.p === pageNumber);
-                
-                if (pageChunks.length > 0) {
-                    detectedSurah = `سورة رقم ${ayahData.surah}`;
-                }
+      const span = document.createElement('span');
+      span.style.fontFamily = "'" + item.family + "'";
+      span.textContent = item.text + ' ';
+      flowEl.appendChild(span);
+    });
 
-                pageChunks.forEach(chunk => {
-                    // استخدام خط الصفحة المحدد بدقة من ملف الـ JSON
-                    htmlContent += `
-                        <span style="font-family: '${chunk.family}';">${chunk.text}</span>
-                    `;
-                });
-            });
+    els.hdrSurah.textContent = 'سورة ' + (SURAH_NAMES[items[0].surah - 1] || items[0].surah);
+    els.live.textContent = 'صفحة ' + currentPage + ' من ' + CONFIG.totalPages;
 
-            if (htmlContent.trim() !== '') {
-                container.innerHTML = htmlContent;
-                document.getElementById('pageNumDisplay').innerText = pageNumber;
-                document.getElementById('pageIndicator').innerText = `صفحة ${pageNumber}`;
-                document.getElementById('surahNameDisplay').innerText = detectedSurah;
-                
-                // حساب الجزء بناءً على رقم الصفحة في مصحف المدينة
-                const juz = Math.ceil(pageNumber / 20);
-                document.getElementById('juzNameDisplay').innerText = `الجزء ${juz}`;
-            } else {
-                container.innerHTML = "<p style='text-align:center; color:#888;'>انتهت صفحات المصحف أو حدث خطأ في المطابقة.</p>";
-            }
-        }
+    // تنبيه في الـ console أثناء المعايرة إن تجاوز النص ارتفاع الإطار المخصص لـ15 سطراً
+    requestAnimationFrame(() => {
+      if(els.content.scrollHeight > els.content.clientHeight + 2){
+        console.warn('الصفحة', currentPage, 'تتجاوز ارتفاع منطقة الـ15 سطراً — راجع design-w و quran-font-size للمعايرة.');
+      }
+    });
+  }
 
-        function changePage(direction) {
-            const newPage = currentPage + direction;
-            if (newPage >= 1 && newPage <= 604) {
-                currentPage = newPage;
-                renderPage(currentPage);
-            }
-        }
+  function goTo(page){
+    renderPage(page);
+  }
 
-        fetchQuranData();
-    </script>
+  /* ============================ التحكم ============================ */
+  els.btnNext.addEventListener('click', () => goTo(currentPage + 1));
+  els.btnPrev.addEventListener('click', () => goTo(currentPage - 1));
+  els.btnGo.addEventListener('click', () => {
+    const v = parseInt(els.pageInput.value, 10);
+    if(!isNaN(v)) goTo(v);
+  });
+  els.pageInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') els.btnGo.click();
+  });
 
+  // التنقل بالأسهم: يمين المصحف = بداية، فالسهم الأيسر يقدّم للصفحة التالية (اتجاه القراءة RTL)
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowLeft') goTo(currentPage + 1);
+    if(e.key === 'ArrowRight') goTo(currentPage - 1);
+  });
+
+  // سحب باللمس على الجوال
+  let touchStartX = null;
+  els.viewport.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].clientX;
+  }, {passive:true});
+  els.viewport.addEventListener('touchend', (e) => {
+    if(touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if(Math.abs(dx) > 50){
+      if(dx < 0) goTo(currentPage + 1); // سحب لليسار → التالية
+      else goTo(currentPage - 1);       // سحب لليمين → السابقة
+    }
+    touchStartX = null;
+  }, {passive:true});
+
+  window.addEventListener('resize', fitPageToViewport);
+  window.addEventListener('load', fitPageToViewport);
+  fitPageToViewport();
+
+  loadData();
+})();
+</script>
 </body>
 </html>
