@@ -10,6 +10,7 @@
             --bg: #ececeb;
             --glass-bg: rgba(255, 255, 255, 0.9);
             --highlight: #63b8ff; /* لون أزرق فاتح للتظليل */
+            --mint: #c0e2ca; /* أخضر النعناعي المستوحى من التصميم المطلوب */
         }
         
         body {
@@ -37,7 +38,6 @@
             border: 1px solid rgba(255, 255, 255, 0.5);
             width: 90%;
             max-width: 700px;
-            z-index: 10;
         }
 
         button {
@@ -80,22 +80,31 @@
             font-weight: bold;
         }
 
-        /* الحاوية أصبحت بسيطة جداً لأن الـ SVG يحتوي على كل شيء */
+        /* حاوية صفحة المصحف: إطار مسنّن أخضر نعناعي (بنفس روح تطبيقات المصحف المطلوبة) */
         .quran-page-container {
             width: 100%;
             max-width: 650px;
-            border-radius: 10px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-            background-color: white; /* خلفية بيضاء تحت الـ SVG الشفاف */
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
+            position: relative;
+            background-color: #ffffff;
+            /* الإطار المسنن مرسوم كصورة SVG واحدة (حلقة خضراء مفرّغة من المنتصف) */
+            background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%20527%22%3E%20%3Cpath%20d%3D%22M%2036.00%2C22.00%20L%2036.00%2C22.00%20A%209.11%2C9.11%200%200%201%2054.22%2C22.00%20L%2054.22%2C22.00%20A%209.11%2C9.11%200%200%201%2072.44%2C22.00%20L%2072.44%2C22.00%20A%209.11%2C9.11%200%200%201%2090.67%2C22.00%20L%2090.67%2C22.00%20A%209.11%2C9.11%200%200%201%20108.89%2C22.00%20L%20108.89%2C22.00%20A%209.11%2C9.11%200%200%201%20127.11%2C22.00%20L%20127.11%2C22.00%20A%209.11%2C9.11%200%200%201%20145.33%2C22.00%20L%20145.33%2C22.00%20A%209.11%2C9.11%200%200%201%20163.56%2C22.00%20L%20163.56%2C22.00%20A%209.11%2C9.11%200%200%201%20181.78%2C22.00%20L%20181.78%2C22.00%20A%209.11%2C9.11%200%200%201%20200.00%2C22.00%20L%20200.00%2C22.00%20A%209.11%2C9.11%200%200%201%20218.22%2C22.00%20L%20218.22%2C22.00%20A%209.11%2C9.11%200%200%201%20236.44%2C22.00%20L%20236.44%2C22.00%20A%209.11%2C9.11%200%200%201%20254.67%2C22.00%20L%20254.67%2C22.00%20A%209.11%2C9.11%200%200%201%20272.89%2C22.00%20L%20272.89%2C22.00%20A%209.11%2C9.11%200%200%201%20291.11%2C22.00%20L%20291.11%2C22.00%20A%209.11%2C9.11%200%200%201%20309.33%2C22.00%20L%20309.33%2C22.00%20A%209.11%2C9.11%200%200%201%20327.56%2C22.00%20L%20327.56%2C22.00%20A%209.11%2C9.11%200%200%201%20345.78%2C22.00%20L%20345.78%2C22.00%20A%209.11%2C9.11%200%200%201%20364.00%2C22.00%20L%20364.00%2C22.00%20A%2014.00%2C14.00%200%200%201%20378.00%2C36.00%20L%20378.00%2C36.00%20A%209.10%2C9.10%200%200%201%20378.00%2C54.20%20L%20378.00%2C54.20%20A%209.10%2C9.10%200%200%201%20378.00%2C72.40%20L%20378.00%2C72.40%20A%209.10%2C9.10%200%200%201%20378.00%2C90.60%20L%20378.00%2C90.60%20A%209.10%2C9.10%200%200%201%20378.00%2C108.80%20L%20378.00%2C108.80%20A%209.10%2C9.10%200%200%201%20378.00%2C127.00%20L%20378.00%2C127.00%20A%209.10%2C9.10%200%200%201%20378.00%2C145.20%20L%20378.00%2C145.20%20A%209.10%2C9.10%200%200%201%20378.00%2C163.40%20L%20378.00%2C163.40%20A%209.10%2C9.10%200%200%201%20378.00%2C181.60%20L%20378.00%2C181.60%20A%209.10%2C9.10%200%200%201%20378.00%2C199.80%20L%20378.00%2C199.80%20A%209.10%2C9.10%200%200%201%20378.00%2C218.00%20L%20378.00%2C218.00%20A%209.10%2C9.10%200%200%201%20378.00%2C236.20%20L%20378.00%2C236.20%20A%209.10%2C9.10%200%200%201%20378.00%2C254.40%20L%20378.00%2C254.40%20A%209.10%2C9.10%200%200%201%20378.00%2C272.60%20L%20378.00%2C272.60%20A%209.10%2C9.10%200%200%201%20378.00%2C290.80%20L%20378.00%2C290.80%20A%209.10%2C9.10%200%200%201%20378.00%2C309.00%20L%20378.00%2C309.00%20A%209.10%2C9.10%200%200%201%20378.00%2C327.20%20L%20378.00%2C327.20%20A%209.10%2C9.10%200%200%201%20378.00%2C345.40%20L%20378.00%2C345.40%20A%209.10%2C9.10%200%200%201%20378.00%2C363.60%20L%20378.00%2C363.60%20A%209.10%2C9.10%200%200%201%20378.00%2C381.80%20L%20378.00%2C381.80%20A%209.10%2C9.10%200%200%201%20378.00%2C400.00%20L%20378.00%2C400.00%20A%209.10%2C9.10%200%200%201%20378.00%2C418.20%20L%20378.00%2C418.20%20A%209.10%2C9.10%200%200%201%20378.00%2C436.40%20L%20378.00%2C436.40%20A%209.10%2C9.10%200%200%201%20378.00%2C454.60%20L%20378.00%2C454.60%20A%209.10%2C9.10%200%200%201%20378.00%2C472.80%20L%20378.00%2C472.80%20A%209.10%2C9.10%200%200%201%20378.00%2C491.00%20L%20378.00%2C491.00%20A%2014.00%2C14.00%200%200%201%20364.00%2C505.00%20L%20364.00%2C505.00%20A%209.11%2C9.11%200%200%201%20345.78%2C505.00%20L%20345.78%2C505.00%20A%209.11%2C9.11%200%200%201%20327.56%2C505.00%20L%20327.56%2C505.00%20A%209.11%2C9.11%200%200%201%20309.33%2C505.00%20L%20309.33%2C505.00%20A%209.11%2C9.11%200%200%201%20291.11%2C505.00%20L%20291.11%2C505.00%20A%209.11%2C9.11%200%200%201%20272.89%2C505.00%20L%20272.89%2C505.00%20A%209.11%2C9.11%200%200%201%20254.67%2C505.00%20L%20254.67%2C505.00%20A%209.11%2C9.11%200%200%201%20236.44%2C505.00%20L%20236.44%2C505.00%20A%209.11%2C9.11%200%200%201%20218.22%2C505.00%20L%20218.22%2C505.00%20A%209.11%2C9.11%200%200%201%20200.00%2C505.00%20L%20200.00%2C505.00%20A%209.11%2C9.11%200%200%201%20181.78%2C505.00%20L%20181.78%2C505.00%20A%209.11%2C9.11%200%200%201%20163.56%2C505.00%20L%20163.56%2C505.00%20A%209.11%2C9.11%200%200%201%20145.33%2C505.00%20L%20145.33%2C505.00%20A%209.11%2C9.11%200%200%201%20127.11%2C505.00%20L%20127.11%2C505.00%20A%209.11%2C9.11%200%200%201%20108.89%2C505.00%20L%20108.89%2C505.00%20A%209.11%2C9.11%200%200%201%2090.67%2C505.00%20L%2090.67%2C505.00%20A%209.11%2C9.11%200%200%201%2072.44%2C505.00%20L%2072.44%2C505.00%20A%209.11%2C9.11%200%200%201%2054.22%2C505.00%20L%2054.22%2C505.00%20A%209.11%2C9.11%200%200%201%2036.00%2C505.00%20L%2036.00%2C505.00%20A%2014.00%2C14.00%200%200%201%2022.00%2C491.00%20L%2022.00%2C491.00%20A%209.10%2C9.10%200%200%201%2022.00%2C472.80%20L%2022.00%2C472.80%20A%209.10%2C9.10%200%200%201%2022.00%2C454.60%20L%2022.00%2C454.60%20A%209.10%2C9.10%200%200%201%2022.00%2C436.40%20L%2022.00%2C436.40%20A%209.10%2C9.10%200%200%201%2022.00%2C418.20%20L%2022.00%2C418.20%20A%209.10%2C9.10%200%200%201%2022.00%2C400.00%20L%2022.00%2C400.00%20A%209.10%2C9.10%200%200%201%2022.00%2C381.80%20L%2022.00%2C381.80%20A%209.10%2C9.10%200%200%201%2022.00%2C363.60%20L%2022.00%2C363.60%20A%209.10%2C9.10%200%200%201%2022.00%2C345.40%20L%2022.00%2C345.40%20A%209.10%2C9.10%200%200%201%2022.00%2C327.20%20L%2022.00%2C327.20%20A%209.10%2C9.10%200%200%201%2022.00%2C309.00%20L%2022.00%2C309.00%20A%209.10%2C9.10%200%200%201%2022.00%2C290.80%20L%2022.00%2C290.80%20A%209.10%2C9.10%200%200%201%2022.00%2C272.60%20L%2022.00%2C272.60%20A%209.10%2C9.10%200%200%201%2022.00%2C254.40%20L%2022.00%2C254.40%20A%209.10%2C9.10%200%200%201%2022.00%2C236.20%20L%2022.00%2C236.20%20A%209.10%2C9.10%200%200%201%2022.00%2C218.00%20L%2022.00%2C218.00%20A%209.10%2C9.10%200%200%201%2022.00%2C199.80%20L%2022.00%2C199.80%20A%209.10%2C9.10%200%200%201%2022.00%2C181.60%20L%2022.00%2C181.60%20A%209.10%2C9.10%200%200%201%2022.00%2C163.40%20L%2022.00%2C163.40%20A%209.10%2C9.10%200%200%201%2022.00%2C145.20%20L%2022.00%2C145.20%20A%209.10%2C9.10%200%200%201%2022.00%2C127.00%20L%2022.00%2C127.00%20A%209.10%2C9.10%200%200%201%2022.00%2C108.80%20L%2022.00%2C108.80%20A%209.10%2C9.10%200%200%201%2022.00%2C90.60%20L%2022.00%2C90.60%20A%209.10%2C9.10%200%200%201%2022.00%2C72.40%20L%2022.00%2C72.40%20A%209.10%2C9.10%200%200%201%2022.00%2C54.20%20L%2022.00%2C54.20%20A%209.10%2C9.10%200%200%201%2022.00%2C36.00%20L%2022.00%2C36.00%20A%2014.00%2C14.00%200%200%201%2036.00%2C22.00%20Z%20M%2058.00%2C52.00%20L%20342.00%2C52.00%20A%206.00%2C6.00%200%200%201%20348.00%2C58.00%20L%20348.00%2C469.00%20A%206.00%2C6.00%200%200%201%20342.00%2C475.00%20L%2058.00%2C475.00%20A%206.00%2C6.00%200%200%201%2052.00%2C469.00%20L%2052.00%2C58.00%20A%206.00%2C6.00%200%200%201%2058.00%2C52.00%20Z%22%20fill%3D%22%23c0e2ca%22%20fill-rule%3D%22evenodd%22/%3E%20%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
         }
 
+        /* حشوة داخلية تكشف سماكة الإطار المسنن حول الصفحة */
+        .quran-page-pad {
+            padding: 13%;
+            box-sizing: border-box;
+        }
+
+        /* ملف الـ SVG نفسه */
         object {
             width: 100%;
             height: auto;
-            display: block;
+            
+            /* هذه الخاصية تحذف الخلفية البيضاء من الـ SVG وتدمجه مع الزخرفة */
+            mix-blend-mode: multiply; 
         }
     </style>
 </head>
@@ -116,8 +125,10 @@
     </div>
 
     <div class="quran-page-container">
-        <!-- سيتم عرض ملف الـ SVG الجديد هنا -->
-        <object id="quranSvg" data="001.svg" type="image/svg+xml"></object>
+        <div class="quran-page-pad">
+            <!-- يتم تحميل ملف الـ SVG هنا -->
+            <object id="quranSvg" data="001.svg" type="image/svg+xml"></object>
+        </div>
     </div>
 
     <script>
@@ -125,13 +136,14 @@
         let ayahsData = [];
         let currentAyahIndex = 0;
         let audioPlayer = new Audio();
-        let playMode = 'stopped'; 
+        let playMode = 'stopped'; // 'sequence', 'repeat', 'stopped'
 
         const pageInput = document.getElementById('pageInput');
         const quranSvg = document.getElementById('quranSvg');
         const playSequenceBtn = document.getElementById('playSequenceBtn');
         const stopBtn = document.getElementById('stopBtn');
 
+        // جلب بيانات الآيات من الـ API
         async function fetchPageData(page) {
             try {
                 playSequenceBtn.disabled = true;
@@ -151,21 +163,21 @@
             }
         }
 
+        // تحديث عرض الصفحة
         function updatePageDisplay(pageNumber) {
             currentPage = parseInt(pageNumber);
             if (currentPage < 1) currentPage = 1;
             if (currentPage > 604) currentPage = 604;
             
             pageInput.value = currentPage;
-            
-            // تحديث ملف الـ SVG فقط
-            const svgFormatted = currentPage.toString().padStart(3, '0') + '.svg';
-            quranSvg.data = svgFormatted;
+            const formattedNum = currentPage.toString().padStart(3, '0');
+            quranSvg.data = `${formattedNum}.svg`;
             
             stopAudio();
             fetchPageData(currentPage);
         }
 
+        // تشغيل الآية
         function playCurrentAyah() {
             if (currentAyahIndex >= ayahsData.length) {
                 stopAudio();
@@ -179,18 +191,22 @@
             playSequenceBtn.style.display = 'none';
             stopBtn.style.display = 'inline-block';
 
+            // تظليل الآية بناءً على رقم الآية والسورة
             highlightAyahInSvg(currentAyah.numberInSurah, currentAyah.surah.number);
 
             audioPlayer.onended = () => {
                 if (playMode === 'repeat') {
+                    // إعادة تشغيل نفس الآية
                     audioPlayer.play();
                 } else if (playMode === 'sequence') {
+                    // الانتقال للآية التالية
                     currentAyahIndex++;
                     playCurrentAyah();
                 }
             };
         }
 
+        // إيقاف الصوت
         function stopAudio() {
             audioPlayer.pause();
             audioPlayer.currentTime = 0;
@@ -200,6 +216,7 @@
             removeHighlightFromSvg();
         }
 
+        // التظليل الدقيق بناءً على الـ data attributes داخل الـ SVG
         function highlightAyahInSvg(ayahNum, surahNum) {
             try {
                 const svgDoc = quranSvg.contentDocument;
@@ -207,7 +224,7 @@
 
                 removeHighlightFromSvg(svgDoc);
 
-                // بافتراض أن هذه الملفات الجديدة تستخدم نفس نظام الـ data-aya
+                // البحث عن كل الكلمات التي تطابق الآية والسورة
                 const allWords = svgDoc.querySelectorAll('g[data-aya]');
                 
                 allWords.forEach(word => {
@@ -224,10 +241,11 @@
                     }
                 });
             } catch (e) {
-                // خطأ متعلق بالـ CORS إذا تم فتحه محلياً بدون سيرفر
+                console.log("تنبيه: لن يعمل التظليل إلا عند رفع الملف على استضافة (GitHub Pages) أو سيرفر محلي (Live Server) بسبب سياسات الأمان CORS.");
             }
         }
 
+        // إزالة التظليل
         function removeHighlightFromSvg(svgDoc = quranSvg.contentDocument) {
             if (!svgDoc) return;
             const activeWords = svgDoc.querySelectorAll('.active-ayah');
@@ -235,42 +253,104 @@
                 word.classList.remove('active-ayah');
                 const paths = word.querySelectorAll('path');
                 paths.forEach(path => {
+                    // استعادة اللون الأصلي للكلمات والتشكيل
                     path.style.fill = path.dataset.originalFill || ''; 
                 });
             });
         }
 
+        // بناء مسار "الشريط" المدبب الطرفين (يشبه الشارة الموجودة في تطبيقات المصحف)
+        // لصندوق اسم السورة، حول أبعاد (x,y,w,h) معطاة، مع طول رأس مدبب "tip"
+        function buildSurahBannerPath(x, y, w, h, tip) {
+            const midY = y + h / 2;
+            return `M ${x},${y} L ${x + w},${y} `
+                 + `Q ${x + w + tip * 0.6},${y + h * 0.15} ${x + w + tip},${midY} `
+                 + `Q ${x + w + tip * 0.6},${y + h * 0.85} ${x + w},${y + h} `
+                 + `L ${x},${y + h} `
+                 + `Q ${x - tip * 0.6},${y + h * 0.85} ${x - tip},${midY} `
+                 + `Q ${x - tip * 0.6},${y + h * 0.15} ${x},${y} Z`;
+        }
+
+        // إضافة شريط أخضر بعرض الصفحة + صندوق أبيض مدبب خلف كل سطر "اسم سورة"
+        // موجود أصلاً داخل ملف الـ SVG (لا نغيّر رسم الاسم نفسه، فقط نزيّن خلفه)
+        function decorateSurahNames(svgDoc) {
+            const SVGNS = 'http://www.w3.org/2000/svg';
+            const pageInner = svgDoc.querySelector('#md-page-inner');
+            const rectAttr = pageInner && pageInner.getAttribute('data-rect');
+            if (!rectAttr) return;
+            const [rx, ry, rw] = rectAttr.split(',').map(Number);
+
+            svgDoc.querySelectorAll('g[data-type="surah-name"]').forEach(line => {
+                if (line.dataset.decorated) return;
+                const bbox = line.getBBox();
+                const padY = 9;
+                const bandY = bbox.y - padY;
+                const bandH = bbox.height + padY * 2;
+
+                // الشريط الأخضر (يمتد على كامل عرض منطقة النص في الصفحة)
+                const band = svgDoc.createElementNS(SVGNS, 'rect');
+                band.setAttribute('x', rx);
+                band.setAttribute('y', bandY);
+                band.setAttribute('width', rw);
+                band.setAttribute('height', bandH);
+                band.setAttribute('fill', '#c0e2ca');
+                line.parentNode.insertBefore(band, line);
+
+                // الصندوق الأبيض المدبب حول اسم السورة فقط
+                const padX = 12, tip = 13;
+                const banner = svgDoc.createElementNS(SVGNS, 'path');
+                banner.setAttribute('d', buildSurahBannerPath(
+                    bbox.x - padX, bandY + 3, bbox.width + padX * 2, bandH - 6, tip
+                ));
+                banner.setAttribute('fill', '#fdfdfb');
+                line.parentNode.insertBefore(banner, line);
+
+                line.dataset.decorated = '1';
+            });
+        }
+
+        // الاستماع لتحميل الـ SVG لإضافة التفاعلية (النقر وتأثير التمرير)
         quranSvg.addEventListener('load', () => {
             try {
                 const svgDoc = quranSvg.contentDocument;
                 if (!svgDoc) return;
 
+                // حقن ستايل CSS داخل الـ SVG لتمكين تأثير الـ hover
                 const style = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'style');
                 style.textContent = `
                     g[data-aya] { cursor: pointer; }
                     g[data-aya]:hover path { fill: #85c1e9 !important; transition: fill 0.2s; }
+                    g[data-type="aya-mark"] [id*="ornament"] path { fill: #a9d6b4; }
+                    g[data-type="aya-mark"] [id*="number"] path { fill: #2c3e50; }
                 `;
                 svgDoc.documentElement.appendChild(style);
 
+                // تزيين أسطر أسماء السور (شريط أخضر + صندوق مدبب) لكل صفحة تُحمَّل
+                decorateSurahNames(svgDoc);
+
+                // الاستماع للنقر على الكلمات
                 svgDoc.addEventListener('click', (e) => {
                     const targetWord = e.target.closest('g[data-aya]');
                     if (targetWord) {
                         const clickedAya = parseInt(targetWord.getAttribute('data-aya'));
                         const clickedSurah = parseInt(targetWord.getAttribute('data-surah'));
                         
+                        // البحث عن الآية في المصفوفة لتشغيلها
                         const index = ayahsData.findIndex(a => a.numberInSurah === clickedAya && a.surah.number === clickedSurah);
                         if (index !== -1) {
                             stopAudio();
                             currentAyahIndex = index;
-                            playMode = 'repeat';
+                            playMode = 'repeat'; // تعيين وضع التكرار عند النقر
                             playCurrentAyah();
                         }
                     }
                 });
             } catch (error) {
-                console.warn("لتفعيل التظليل، قم برفع المشروع على استضافة أو استخدم Live Server.");
+                console.warn("سياسة المتصفح تمنع قراءة وتعديل محتوى SVG محلياً. استخدم Live Server أو ارفعها لـ GitHub.");
             }
         });
+
+        // ------------------ أزرار التحكم والربط ------------------
 
         playSequenceBtn.addEventListener('click', () => {
             if (ayahsData.length > 0) {
@@ -298,7 +378,7 @@
             if (e.key === 'Enter') updatePageDisplay(pageInput.value);
         });
 
-        // التهيئة
+        // تشغيل التهيئة الأولية (الصفحة 1)
         updatePageDisplay(1);
     </script>
 </body>
